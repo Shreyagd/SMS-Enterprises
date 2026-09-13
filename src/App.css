@@ -1,0 +1,10 @@
+/* App.css - Specific component overrides */
+.site-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.public-content {
+  flex-grow: 1;
+}
