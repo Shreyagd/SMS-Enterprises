@@ -16,16 +16,28 @@ import ContactPage from './components/public/ContactPage';
 import AdminLayout from './components/admin/AdminLayout';
 import AdminLogin from './components/admin/AdminLogin';
 
+function checkIsAdminUrl() {
+  const hash = (window.location.hash || '').toLowerCase();
+  const path = (window.location.pathname || '').toLowerCase();
+  const search = (window.location.search || '').toLowerCase();
+
+  return (
+    hash === '#admin' ||
+    hash.startsWith('#admin') ||
+    hash.startsWith('#/admin') ||
+    path === '/admin' ||
+    path.startsWith('/admin/') ||
+    path.endsWith('/admin') ||
+    search.includes('admin')
+  );
+}
+
 function MainApp() {
   const { adminUser } = useData();
 
   // Page Routing & View State
   const [view, setView] = useState(() => {
-    // Check if initial hash or path specifies admin
-    if (window.location.hash === '#admin' || window.location.pathname === '/admin') {
-      return 'admin';
-    }
-    return 'public';
+    return checkIsAdminUrl() ? 'admin' : 'public';
   });
 
   const [activePage, setActivePage] = useState('home');
@@ -33,29 +45,58 @@ function MainApp() {
   const [quoteInitialProduct, setQuoteInitialProduct] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  const handleOpenAdmin = () => {
+    if (window.location.hash !== '#admin') {
+      window.location.hash = 'admin';
+    }
+    setView('admin');
+  };
+
+  const handleExitAdmin = () => {
+    setView('public');
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+    if (window.location.pathname.toLowerCase().includes('admin')) {
+      window.history.pushState(null, '', '/');
+    }
+  };
+
   // Secret keyboard shortcut to toggle admin: Ctrl + Shift + A (or Cmd + Shift + A)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
         e.preventDefault();
-        setView(prev => prev === 'admin' ? 'public' : 'admin');
+        setView(prev => {
+          const next = prev === 'admin' ? 'public' : 'admin';
+          if (next === 'admin') {
+            window.location.hash = 'admin';
+          } else {
+            handleExitAdmin();
+          }
+          return next;
+        });
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Listen for hash changes (e.g. #admin)
+  // Listen for hash & URL changes (e.g. #admin, #/admin, back/forward navigation)
   useEffect(() => {
-    const handleHashChange = () => {
-      if (window.location.hash === '#admin') {
+    const handleUrlChange = () => {
+      if (checkIsAdminUrl()) {
         setView('admin');
-      } else if (window.location.hash === '' || window.location.hash === '#home') {
+      } else {
         setView('public');
       }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    window.addEventListener('popstate', handleUrlChange);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('popstate', handleUrlChange);
+    };
   }, []);
 
   const openQuoteForProduct = (productName = '') => {
@@ -69,20 +110,14 @@ function MainApp() {
       return (
         <AdminLogin 
           onLoginSuccess={() => {}} 
-          onCancel={() => {
-            setView('public');
-            window.location.hash = '';
-          }} 
+          onCancel={handleExitAdmin} 
         />
       );
     }
 
     return (
       <AdminLayout 
-        onExitAdmin={() => {
-          setView('public');
-          window.location.hash = '';
-        }} 
+        onExitAdmin={handleExitAdmin} 
       />
     );
   }
@@ -94,6 +129,7 @@ function MainApp() {
         activePage={activePage} 
         setActivePage={setActivePage} 
         onOpenQuoteModal={() => openQuoteForProduct('')} 
+        onOpenAdmin={handleOpenAdmin}
       />
 
       <main className="public-content">
@@ -134,7 +170,7 @@ function MainApp() {
 
       <Footer 
         setActivePage={setActivePage} 
-        onOpenAdmin={() => setView('admin')} 
+        onOpenAdmin={handleOpenAdmin} 
       />
 
       {/* Interactive Quotation Modal */}

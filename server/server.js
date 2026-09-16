@@ -466,6 +466,30 @@ app.put('/api/settings', (req, res) => {
   res.json({ success: true, settings: data.settings });
 });
 
+// Serve client static files if dist exists
+const distPath = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  // If running in development without build, give clear guidance for /admin
+  app.get(['/admin', '/admin/*'], (req, res) => {
+    res.send(`
+      <div style="font-family: sans-serif; padding: 40px; text-align: center; max-width: 600px; margin: 0 auto;">
+        <h2>SMS Enterprises - Admin Portal</h2>
+        <p>The backend API server is running on port ${PORT}.</p>
+        <p>To access the Admin Portal, open Vite Frontend at:</p>
+        <p><a href="http://localhost:5173/#admin" style="font-size: 1.2rem; color: #16a34a; font-weight: bold;">http://localhost:5173/#admin</a></p>
+      </div>
+    `);
+  });
+}
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`[SMS ENTERPRISES] Database API Server listening on http://localhost:${PORT}`);

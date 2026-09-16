@@ -62,6 +62,11 @@ export default function Footer({ setActivePage, onOpenAdmin }) {
                   <ChevronRight size={14} /> Contact Us
                 </button>
               </li>
+              <li>
+                <button onClick={() => { onOpenAdmin && onOpenAdmin(); window.scrollTo({ top: 0, behavior: 'smooth'}); }} className="admin-portal-nav-btn">
+                  <Lock size={13} style={{ color: '#22c55e' }} /> Staff / Admin Portal
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -122,22 +127,23 @@ export default function Footer({ setActivePage, onOpenAdmin }) {
         </div>
       </div>
 
-      {/* Secret Trigger Copyright Bar */}
+      {/* Admin Access & Copyright Bar */}
       <div className="footer-bottom-bar">
         <div className="container bottom-container">
           <div className="copyright-text">
             © {new Date().getFullYear()} {settings.companyName}. All Rights Reserved.
           </div>
 
-          {/* Hidden Admin Access Trigger - looks completely innocent, unlinked, no button styling */}
-          <div 
-            className="secret-admin-trigger" 
-            title="System Security"
-            onDoubleClick={onOpenAdmin}
+          {/* Admin Access Trigger */}
+          <button 
+            type="button"
+            className="footer-admin-trigger" 
+            title="SMS Enterprises Admin Operations Portal"
+            onClick={onOpenAdmin}
           >
-            <Lock size={12} className="lock-icon" />
-            <span className="secret-hint">Security Protected</span>
-          </div>
+            <Lock size={13} className="lock-icon" />
+            <span>Admin Portal</span>
+          </button>
         </div>
       </div>
 
@@ -257,6 +263,14 @@ export default function Footer({ setActivePage, onOpenAdmin }) {
           color: #22c55e;
         }
 
+        .admin-portal-nav-btn {
+          color: #e2e8f0 !important;
+          font-weight: 600;
+        }
+        .admin-portal-nav-btn:hover {
+          color: #22c55e !important;
+        }
+
         /* Bottom bar */
         .footer-bottom-bar {
           background-color: #040913;
@@ -270,24 +284,27 @@ export default function Footer({ setActivePage, onOpenAdmin }) {
           font-size: 0.82rem;
           color: #64748b;
         }
-        .secret-admin-trigger {
+        .footer-admin-trigger {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          cursor: default;
-          user-select: none;
-          opacity: 0.6;
-          transition: opacity 0.2s;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: #cbd5e1;
+          padding: 5px 14px;
+          border-radius: 6px;
+          font-size: 0.78rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
-        .secret-admin-trigger:hover {
-          opacity: 0.9;
+        .footer-admin-trigger:hover {
+          background: rgba(34, 197, 94, 0.18);
+          color: #4ade80;
+          border-color: rgba(34, 197, 94, 0.4);
         }
         .lock-icon {
-          color: #475569;
-        }
-        .secret-hint {
-          font-size: 0.72rem;
-          letter-spacing: 0.5px;
+          color: #22c55e;
         }
 
         @media (max-width: 991px) {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Phone, Mail, ArrowRight } from 'lucide-react';
+import { Menu, X, Phone, Mail, ArrowRight, Lock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
-export default function Navbar({ activePage, setActivePage, onOpenQuoteModal }) {
+export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, onOpenAdmin }) {
   const { settings } = useData();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -46,6 +46,15 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal }) 
             <a href={`mailto:${settings.email}`} className="utility-link">
               <Mail size={13} /> {settings.email}
             </a>
+            {onOpenAdmin && (
+              <button 
+                onClick={onOpenAdmin} 
+                className="utility-admin-link"
+                title="Open Admin Operations Portal"
+              >
+                <Lock size={12} /> Admin Portal
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -117,6 +126,20 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal }) 
                   <ArrowRight size={16} />
                 </button>
               ))}
+              {onOpenAdmin && (
+                <button 
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenAdmin();
+                  }}
+                  className="mobile-nav-link mobile-admin-link"
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <Lock size={15} /> Admin Operations Portal
+                  </span>
+                  <ArrowRight size={16} />
+                </button>
+              )}
               <div className="mobile-quote-wrap">
                 <button 
                   className="btn btn-primary btn-block"
@@ -167,6 +190,25 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal }) 
         }
         .utility-link:hover {
           color: #22c55e;
+        }
+        .utility-admin-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: rgba(255, 255, 255, 0.1);
+          color: #e2e8f0;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          padding: 3px 9px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .utility-admin-link:hover {
+          background: var(--primary-green);
+          color: #ffffff;
+          border-color: var(--primary-green);
         }
         
         /* Navbar Main */
