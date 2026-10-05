@@ -19,7 +19,7 @@ import { useData } from '../../context/DataContext';
 export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProduct }) {
   const { settings, products } = useData();
 
-  const featuredProducts = products.slice(0, 3);
+  const featuredProducts = (products.some(p => p.featured) ? products.filter(p => p.featured) : products).slice(0, 6);
 
   const valueBadges = [
     {
@@ -226,10 +226,10 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
 
           <div className="products-preview-grid">
             {featuredProducts.map((prod) => (
-              <div key={prod.id} className="card product-preview-card">
+              <div key={prod.id} className="card product-preview-card" style={{ cursor: 'pointer' }} onClick={() => onSelectProduct(prod)}>
                 <div className="prod-img-wrap">
-                  <img src={prod.image} alt={prod.name} className="prod-img" />
-                  <span className="prod-badge">{prod.badge}</span>
+                  <img src={prod.image} alt={prod.name} className="prod-img" loading="lazy" />
+                  {prod.badge && <span className="prod-badge">{prod.badge}</span>}
                 </div>
                 <div className="prod-card-body">
                   <span className="prod-cat">{prod.category}</span>
@@ -242,8 +242,8 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                       <span className="val">{prod.thickness}</span>
                     </div>
                     <div className="mini-spec">
-                      <span className="label">Stretch:</span>
-                      <span className="val">{prod.elongation}</span>
+                      <span className="label">Width:</span>
+                      <span className="val">{prod.width}</span>
                     </div>
                   </div>
 
@@ -256,7 +256,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                     </button>
                     <button 
                       className="btn btn-primary btn-sm"
-                      onClick={() => onOpenQuoteModal(prod.name)}
+                      onClick={(e) => { e.stopPropagation(); onOpenQuoteModal(prod.name); }}
                     >
                       GET QUOTE
                     </button>

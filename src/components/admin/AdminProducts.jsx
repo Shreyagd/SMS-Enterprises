@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { PRODUCT_CATEGORIES } from '../../data/products';
 
 export default function AdminProducts() {
   const { products, saveProduct, deleteProduct } = useData();
@@ -9,7 +10,7 @@ export default function AdminProducts() {
 
   const initialForm = {
     name: '',
-    category: 'Stretch Film',
+    category: PRODUCT_CATEGORIES[0],
     subtitle: '',
     description: '',
     thickness: '23 Micron',
@@ -172,11 +173,7 @@ export default function AdminProducts() {
                     onChange={handleChange} 
                     className="form-select"
                   >
-                    <option value="Stretch Film">Stretch Film</option>
-                    <option value="LDPE Shrink Film">LDPE Shrink Film</option>
-                    <option value="Bopp Laminated Roll">Bopp Laminated Roll</option>
-                    <option value="Agri Packaging Films">Agri Packaging Films</option>
-                    <option value="Pharma Garbage Bags">Pharma Garbage Bags</option>
+                    {PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
               </div>

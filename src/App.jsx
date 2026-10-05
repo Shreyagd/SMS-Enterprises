@@ -3,11 +3,11 @@ import { DataProvider, useData } from './context/DataContext';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
 import QuoteModal from './components/common/QuoteModal';
-import ProductDetailsModal from './components/common/ProductDetailsModal';
 
 // Public Pages
 import HomePage from './components/public/HomePage';
 import ProductsPage from './components/public/ProductsPage';
+import ProductDetailPage from './components/public/ProductDetailPage';
 import GalleryPage from './components/public/GalleryPage';
 import AboutPage from './components/public/AboutPage';
 import ContactPage from './components/public/ContactPage';
@@ -32,6 +32,16 @@ function checkIsAdminUrl() {
   );
 }
 
+const PAGES = ['home', 'products', 'gallery', 'about', 'contact'];
+
+// Map the URL path to a public page: /products/<slug> opens a product page.
+function parseRoute() {
+  const parts = window.location.pathname.toLowerCase().split('/').filter(Boolean);
+  if (parts[0] === 'products' && parts[1]) return { page: 'product', slug: parts[1] };
+  if (PAGES.includes(parts[0])) return { page: parts[0], slug: null };
+  return { page: 'home', slug: null };
+}
+
 function MainApp() {
   const { adminUser } = useData();
 
@@ -40,10 +50,19 @@ function MainApp() {
     return checkIsAdminUrl() ? 'admin' : 'public';
   });
 
-  const [activePage, setActivePage] = useState('home');
+  const [route, setRoute] = useState(parseRoute);
+  const activePage = route.page;
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [quoteInitialProduct, setQuoteInitialProduct] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const navigate = (page, slug = null) => {
+    const path = page === 'product' ? `/products/${slug}` : page === 'home' ? '/' : `/${page}`;
+    if (window.location.pathname !== path) window.history.pushState(null, '', path);
+    setRoute({ page, slug });
+    window.scrollTo({ top: 0 });
+  };
+  const setActivePage = (page) => navigate(page);
+  const openProduct = (product) => navigate('product', product.slug || product.id);
 
   const handleOpenAdmin = () => {
     if (window.location.hash !== '#admin') {
@@ -89,6 +108,7 @@ function MainApp() {
         setView('admin');
       } else {
         setView('public');
+        setRoute(parseRoute());
       }
     };
     window.addEventListener('hashchange', handleUrlChange);
@@ -126,7 +146,7 @@ function MainApp() {
   return (
     <div className="site-wrapper">
       <Navbar 
-        activePage={activePage} 
+        activePage={activePage === 'product' ? 'products' : activePage} 
         setActivePage={setActivePage} 
         onOpenQuoteModal={() => openQuoteForProduct('')} 
         onOpenAdmin={handleOpenAdmin}
@@ -137,7 +157,7 @@ function MainApp() {
           <HomePage 
             setActivePage={setActivePage} 
             onOpenQuoteModal={openQuoteForProduct} 
-            onSelectProduct={setSelectedProduct} 
+            onSelectProduct={openProduct} 
           />
         )}
 
@@ -145,7 +165,16 @@ function MainApp() {
           <ProductsPage 
             setActivePage={setActivePage} 
             onOpenQuoteModal={openQuoteForProduct} 
-            onSelectProduct={setSelectedProduct} 
+            onSelectProduct={openProduct} 
+          />
+        )}
+
+        {activePage === 'product' && (
+          <ProductDetailPage 
+            slug={route.slug}
+            setActivePage={setActivePage} 
+            onOpenQuoteModal={openQuoteForProduct} 
+            onSelectProduct={openProduct} 
           />
         )}
 
@@ -170,6 +199,7 @@ function MainApp() {
 
       <Footer 
         setActivePage={setActivePage} 
+        onSelectProduct={openProduct} 
         onOpenAdmin={handleOpenAdmin} 
       />
 
@@ -180,12 +210,6 @@ function MainApp() {
         initialProduct={quoteInitialProduct} 
       />
 
-      {/* Product Details Drawer / Modal */}
-      <ProductDetailsModal 
-        product={selectedProduct} 
-        onClose={() => setSelectedProduct(null)} 
-        onOpenQuote={openQuoteForProduct} 
-      />
     </div>
   );
 }

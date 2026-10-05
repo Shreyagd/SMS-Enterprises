@@ -2,8 +2,10 @@ import React from 'react';
 import { Phone, Mail, MapPin, Award, ShieldCheck, ChevronRight, Lock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
-export default function Footer({ setActivePage, onOpenAdmin }) {
-  const { settings } = useData();
+const FOOTER_PRODUCTS = ['ldpe-shrink-film', 'industrial-stretch-film', 'vci-film', 'silage-stretch-film', 'agricultural-mulch-film', 'multi-layer-laminated-pouches'];
+
+export default function Footer({ setActivePage, onOpenAdmin, onSelectProduct }) {
+  const { settings, products } = useData();
 
   return (
     <footer className="site-footer">
@@ -74,31 +76,17 @@ export default function Footer({ setActivePage, onOpenAdmin }) {
           <div className="footer-col">
             <h4 className="footer-heading">Product Lines</h4>
             <ul className="footer-link-list">
-              <li>
-                <button onClick={() => { setActivePage('products'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Machine Stretch Film
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setActivePage('products'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Hand & Pre-Stretch Film
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setActivePage('products'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> LDPE Heavy Shrink Film
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setActivePage('products'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> BOPP Laminated Rolls
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setActivePage('products'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Agri Silage & Mulch Film
-                </button>
-              </li>
+              {FOOTER_PRODUCTS.map(slug => {
+                const prod = products.find(p => p.slug === slug);
+                if (!prod) return null;
+                return (
+                  <li key={slug}>
+                    <button onClick={() => onSelectProduct(prod)}>
+                      <ChevronRight size={14} /> {prod.name}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

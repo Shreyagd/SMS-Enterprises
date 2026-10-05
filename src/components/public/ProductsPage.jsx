@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
-import { Layers, ArrowRight, CheckCircle, Search, HelpCircle, Filter } from 'lucide-react';
+import { ArrowRight, CheckCircle, Search, HelpCircle } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { PRODUCT_CATEGORIES } from '../../data/products';
 
 export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelectProduct }) {
   const { products } = useData();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categories = [
-    'All',
-    'Stretch Film',
-    'LDPE Shrink Film',
-    'Bopp Laminated Roll',
-    'Agri Packaging Films',
-    'Pharma Garbage Bags'
-  ];
+    // Known categories first, then any custom ones added from the admin panel
+  const categories = ['All', ...new Set([...PRODUCT_CATEGORIES, ...products.map(p => p.category)])];
+  const countFor = (cat) => cat === 'All' ? products.length : products.filter(p => p.category === cat).length;
 
+  const term = searchTerm.toLowerCase();
   const filteredProducts = products.filter(p => {
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.subtitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = [p.name, p.subtitle, p.category, p.description]
+      .some(v => (v || '').toLowerCase().includes(term));
     return matchesCategory && matchesSearch;
   });
 
@@ -29,12 +25,11 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
       {/* Header */}
       <section className="products-header-section">
         <div className="container">
-          <div className="section-title-wrap">
-            <h1 className="section-title">OUR PRODUCTS</h1>
-            <p className="section-subtitle">
-              High performance stretch films for every wrapping need & flexible packaging solutions
-            </p>
-          </div>
+                    <span className="products-eyebrow">Product Catalogue</span>
+          <h1 className="products-hero-title">Packaging films &amp; flexible packaging, engineered for your line</h1>
+          <p className="products-hero-sub">
+            Shrink &amp; stretch films, VCI films and liners, agricultural films and multi-layer laminates. {products.length} product lines, customised to your size, thickness and print.
+          </p>
         </div>
       </section>
 
@@ -55,8 +50,8 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
                         onClick={() => setSelectedCategory(cat)}
                         className={`sidebar-cat-btn ${isActive ? 'cat-btn-active' : ''}`}
                       >
-                        <span>{cat === 'All' ? 'All Products' : cat}</span>
-                        {isActive && <div className="active-dot" />}
+                                                <span>{cat === 'All' ? 'All Products' : cat}</span>
+                        <span className="cat-count">{countFor(cat)}</span>
                       </button>
                     );
                   })}
@@ -128,12 +123,20 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
               ) : (
                 <div className="products-cards-grid">
                   {filteredProducts.map((product) => (
-                    <div key={product.id} className="card product-item-card">
+                                        <div
+                      key={product.id}
+                      className="card product-item-card"
+                      role="link"
+                      tabIndex={0}
+                      onClick={() => onSelectProduct(product)}
+                      onKeyDown={(e) => e.key === 'Enter' && onSelectProduct(product)}
+                    >
                       <div className="product-thumb-wrap">
                         <img 
                           src={product.image} 
                           alt={product.name} 
-                          className="product-thumb-img" 
+                                                    className="product-thumb-img"
+                          loading="lazy"
                         />
                         {product.badge && (
                           <span className="product-card-badge">{product.badge}</span>
@@ -146,25 +149,21 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
                         <p className="product-snippet">{product.subtitle}</p>
 
                         <div className="product-key-specs">
-                          <div className="spec-pill">
-                            <span>Micron:</span> <strong>{product.thickness}</strong>
-                          </div>
-                          <div className="spec-pill">
-                            <span>Core:</span> <strong>{product.coreSize}</strong>
-                          </div>
+                                                    {product.thickness && (
+                            <div className="spec-pill">
+                              <span>Thickness:</span> <strong>{product.thickness}</strong>
+                            </div>
+                          )}
                         </div>
 
                         <div className="product-card-bottom-actions">
-                          <button 
-                            className="btn-link-details"
-                            onClick={() => onSelectProduct(product)}
-                          >
-                            VIEW DETAILS
-                          </button>
-                          
-                          <button 
+                                                    <span className="btn-link-details">
+                            View details <ArrowRight size={14} />
+                          </span>
+
+                          <button
                             className="btn btn-primary btn-sm"
-                            onClick={() => onOpenQuoteModal(product.name)}
+                            onClick={(e) => { e.stopPropagation(); onOpenQuoteModal(product.name); }}
                           >
                             GET A QUOTE
                           </button>
@@ -180,21 +179,64 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
       </section>
 
       <style>{`
-        .products-header-section {
-          background-color: #f8fafc;
-          padding: 50px 0 30px;
-          border-bottom: 1px solid var(--border-light);
+                .products-header-section {
+          background: linear-gradient(120deg, var(--primary-navy) 0%, var(--navy-light) 100%);
+          padding: 64px 0 56px;
+          color: #fff;
+        }
+        .products-eyebrow {
+          display: inline-block;
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: #4ade80;
+          margin-bottom: 12px;
+        }
+        .products-hero-title {
+          color: #fff;
+          font-size: 2.6rem;
+          font-weight: 800;
+          max-width: 760px;
+          letter-spacing: -0.5px;
+          margin-bottom: 14px;
+        }
+        .products-hero-sub {
+          color: #cbd5e1;
+          font-size: 1.05rem;
+          max-width: 680px;
+          line-height: 1.7;
+        }
+        .cat-count {
+          font-size: 0.75rem;
+          font-weight: 700;
+          background: #f1f5f9;
+          color: #64748b;
+          border-radius: var(--radius-full);
+          padding: 1px 8px;
+        }
+        .cat-btn-active .cat-count {
+          background: rgba(255, 255, 255, 0.2);
+          color: #fff;
+        }
+        .product-item-card {
+          cursor: pointer;
+        }
+        .product-item-card:focus-visible {
+          outline: 2px solid var(--primary-green);
+          outline-offset: 2px;
         }
         .products-body-section {
           padding: 50px 0 80px;
         }
         .products-layout-grid {
           display: grid;
-          grid-template-columns: 280px 1fr;
+                    grid-template-columns: 260px 1fr;
           gap: 40px;
           align-items: flex-start;
         }
 
+        .products-layout-grid > * { min-width: 0; }
         /* Left Sidebar */
         .sidebar-card {
           background-color: #ffffff;
@@ -343,7 +385,7 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
         }
         .product-thumb-wrap {
           position: relative;
-          height: 190px;
+                    height: 200px;
           background-color: #f8fafc;
           overflow: hidden;
         }
@@ -416,7 +458,10 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
           padding-top: 14px;
           border-top: 1px solid #edf2f7;
         }
-        .btn-link-details {
+                .btn-link-details {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
           background: none;
           border: none;
           font-family: var(--font-heading);
@@ -429,9 +474,8 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
           padding: 0;
           transition: var(--transition);
         }
-        .btn-link-details:hover {
+                .product-item-card:hover .btn-link-details {
           color: var(--green-hover);
-          text-decoration: underline;
         }
 
         .no-products-box {
@@ -454,9 +498,18 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
             grid-template-columns: repeat(2, 1fr);
           }
         }
-        @media (max-width: 800px) {
+                @media (max-width: 800px) {
+          .products-header-section {
+            padding: 40px 0 36px;
+          }
+          .products-hero-title {
+            font-size: 1.75rem;
+          }
+          .products-hero-sub {
+            font-size: 0.95rem;
+          }
           .products-layout-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: minmax(0, 1fr);
             gap: 20px;
           }
           .sidebar-card {

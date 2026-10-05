@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { PRODUCTS } from '../src/data/products.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,128 +36,7 @@ const initialData = {
     adminEmail: 'admin@smsenterprises.com',
     adminPassword: 'SMSAdmin@2025' // can be changed via admin settings
   },
-  products: [
-    {
-      id: 'prod-1',
-      name: 'Machine Stretch Film',
-      category: 'Stretch Film',
-      subtitle: 'Engineered for high-speed automatic wrapping machines with superior stretch & cling',
-      description: 'Our high-performance Machine Stretch Film is manufactured using advanced multi-layer cast and blown extrusion technology. It provides exceptional load-holding force, up to 300% elongation, and high puncture resistance for pallet transit.',
-      thickness: '12 - 35 Micron',
-      width: '500 mm / Customized',
-      elongation: 'Up to 300%',
-      coreSize: '76 mm (3 inch)',
-      image: '/images/prod_stretch_film.jpg',
-      badge: 'High Speed Rated',
-      featured: true,
-      applications: ['Automated turntable wrappers', 'High-volume logistics pallets', 'Beverage & FMCG palletizing']
-    },
-    {
-      id: 'prod-2',
-      name: 'Hand Stretch Film',
-      category: 'Stretch Film',
-      subtitle: 'Easy to use for manual wrapping applications. Strong, durable & reliable.',
-      description: 'Premium grade manual hand stretch film roll designed for lightweight handling without sacrificing tension or load containment. Features ergonomic core rolls and silent unwind.',
-      thickness: '15 - 29 Micron',
-      width: '450 mm - 500 mm',
-      elongation: 'Up to 180%',
-      coreSize: '50 mm or 76 mm',
-      image: '/images/hero_pallet.jpg',
-      badge: 'Popular Manual',
-      featured: true,
-      applications: ['Manual box bundling', 'Odd-shaped cargo', 'Warehouse picking stations']
-    },
-    {
-      id: 'prod-3',
-      name: 'Mini Stretch Film (Bundle Wrap)',
-      category: 'Stretch Film',
-      subtitle: 'Compact size for small loads, cable bundling and easy handling.',
-      description: 'Narrow width stretch film ideal for bundling pipes, profiles, cartons, cables, and hardware without sticky adhesive residue.',
-      thickness: '20 - 23 Micron',
-      width: '100 mm - 250 mm',
-      elongation: 'Up to 200%',
-      coreSize: '38 mm / 50 mm plastic core',
-      image: '/images/prod_stretch_film.jpg',
-      badge: 'Easy Bundling',
-      featured: false,
-      applications: ['Hardware & lumber bundling', 'Textile rolls', 'Couriers & dispatch packages']
-    },
-    {
-      id: 'prod-4',
-      name: 'Pre-Stretch Film',
-      category: 'Stretch Film',
-      subtitle: 'High performance film with excellent stretchability and cost efficiency.',
-      description: 'Pre-stretched during production to reduce manual operator fatigue and save up to 50% on plastic consumption while providing rigid pallet locking.',
-      thickness: '8 - 12 Micron',
-      width: '430 mm - 500 mm',
-      elongation: 'Pre-oriented high tension',
-      coreSize: '50 mm / Coreless available',
-      image: '/images/pallet_machine.jpg',
-      badge: 'Eco Cost Saver',
-      featured: true,
-      applications: ['Heavy carton loads', 'Temperature sensitive goods', 'Sustainable eco packaging']
-    },
-    {
-      id: 'prod-5',
-      name: 'LDPE Shrink Film',
-      category: 'LDPE Shrink Film',
-      subtitle: 'Heavy-duty secondary packaging for beverage multipacks, cans, and bulk containers.',
-      description: 'High tensile strength LDPE shrink film engineered for heat tunnels. Provides tight crystal-clear bundle containment for bottled water, soda cans, and jars.',
-      thickness: '35 - 120 Micron',
-      width: '200 mm - 1600 mm',
-      elongation: 'Shrink ratio: 60-70% TD / 10-20% MD',
-      coreSize: '76 mm',
-      image: '/images/prod_shrink_film.jpg',
-      badge: 'Heavy Duty',
-      featured: true,
-      applications: ['Packaged drinking water', 'Canned beverages', 'Food & chemical multipacks']
-    },
-    {
-      id: 'prod-6',
-      name: 'Bopp Laminated Rolls & Pouches',
-      category: 'Bopp Laminated Roll',
-      subtitle: 'High-barrier printed multi-layer laminated film rolls for food, spice, and retail packaging.',
-      description: 'Printed on our state-of-the-art 600m/min rotogravure printing machine. Offers moisture barrier, aroma preservation, and vivid photo-realistic branding.',
-      thickness: '40 - 150 Micron laminated structure',
-      width: 'Custom printed roll widths',
-      elongation: 'Dimensionally stable',
-      coreSize: '76 mm',
-      image: '/images/packaging_showroom.jpg',
-      badge: 'High Barrier Rotogravure',
-      featured: true,
-      applications: ['Spices, coffee, tea', 'Dry fruits & pulses', 'Snacks & confectionery packaging']
-    },
-    {
-      id: 'prod-7',
-      name: 'Agri Packaging & Silage Stretch Film',
-      category: 'Agri Packaging Films',
-      subtitle: 'UV-stabilized agricultural films for silage bales, mulch beds, and greenhouse covers.',
-      description: 'Engineered for Indian and global farming conditions with multi-layer co-extrusion. Includes black/silver mulch films, green silage stretch wraps for hay preservation, and solarization films.',
-      thickness: '25 - 200 Micron',
-      width: '750 mm - 1200 mm',
-      elongation: 'High puncture resistance against stalks',
-      coreSize: '76 mm heavy paper core',
-      image: '/images/prod_agri_film.jpg',
-      badge: '12-Month UV Stabilized',
-      featured: true,
-      applications: ['Silage round bale wrapping', 'Mulch film agricultural beds', 'Greenhouse low tunnels']
-    },
-    {
-      id: 'prod-8',
-      name: 'Pharma & Industrial Garbage Bags',
-      category: 'Pharma Garbage Bags',
-      subtitle: 'Puncture-proof, leak-resistant biohazard and industrial heavy-duty waste collection rolls.',
-      description: 'Heavy duty Star-sealed bottom rolls available in clinical colors (Black, Blue, Yellow, Red) for hospital biomedical management and warehouse hygiene.',
-      thickness: '25 - 60 Micron',
-      width: 'Customized sizes (Small to Jumbo Bin)',
-      elongation: 'High dart drop impact resistance',
-      coreSize: 'Perforated roll',
-      image: '/images/prod_agri_film.jpg',
-      badge: 'Biohazard & Heavy Duty',
-      featured: false,
-      applications: ['Hospitals & pharma cleanrooms', 'Industrial manufacturing plants', 'Hotels & commercial facilities']
-    }
-  ],
+  products: PRODUCTS,
   gallery: [
     {
       id: 'gal-1',

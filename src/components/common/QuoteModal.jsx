@@ -4,14 +4,14 @@ import confetti from 'canvas-confetti';
 import { useData } from '../../context/DataContext';
 
 export default function QuoteModal({ isOpen, onClose, initialProduct = '' }) {
-  const { submitQuote } = useData();
+  const { submitQuote, products } = useData();
 
   const [formData, setFormData] = useState({
     name: '',
     company: '',
     email: '',
     phone: '',
-    productType: initialProduct || 'Machine Stretch Film',
+    productType: initialProduct || 'Custom Packaging Solution',
     thickness: '23 Micron',
     quantity: '500 Rolls',
     destination: '',
@@ -146,14 +146,9 @@ export default function QuoteModal({ isOpen, onClose, initialProduct = '' }) {
                   onChange={handleChange}
                   className="form-select"
                 >
-                  <option value="Machine Stretch Film">Machine Stretch Film (Cast & Blown)</option>
-                  <option value="Hand Stretch Film">Hand Stretch Film (Manual Rolls)</option>
-                  <option value="Mini Stretch Film">Mini Stretch Film (Bundle Wrap)</option>
-                  <option value="Pre-Stretch Film">Pre-Stretch High Yield Film</option>
-                  <option value="LDPE Shrink Film">LDPE Heavy Shrink Film (Bottles/Cans)</option>
-                  <option value="Bopp Laminated Roll">BOPP Laminated Multi-layer Rolls & Pouches</option>
-                  <option value="Agri Packaging Films">Agri Mulch & Silage Stretch Film</option>
-                  <option value="Pharma Garbage Bags">Pharma & Industrial Garbage Bags</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.name}>{p.name}</option>
+                  ))}
                   <option value="Custom Packaging Solution">Custom Packaging Solution</option>
                 </select>
               </div>
