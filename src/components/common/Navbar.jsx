@@ -1,11 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, X, Phone, Mail, ArrowRight, Lock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Menu, X, ArrowRight, Lock, ChevronDown } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { PRODUCT_CATEGORIES } from '../../data/products';
 
-export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, onOpenAdmin }) {
-  const { settings } = useData();
+export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, onOpenAdmin, onSelectProduct }) {
+  const { settings, products } = useData();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
+  const megaCloseTimer = useRef(null);
+
+  // Small close delay so the pointer can travel from the menu label into the panel
+  const showMega = () => {
+    clearTimeout(megaCloseTimer.current);
+    setMegaOpen(true);
+  };
+  const hideMega = () => {
+    clearTimeout(megaCloseTimer.current);
+    megaCloseTimer.current = setTimeout(() => setMegaOpen(false), 200);
+  };
+
+  // Products grouped under the doc's main headings (FMCG / Industrial / Agri), plus any custom admin categories
+  const productGroups = [...new Set([...PRODUCT_CATEGORIES, ...products.map(p => p.category)])]
+    .map(category => ({ category, items: products.filter(p => p.category === category) }))
+    .filter(g => g.items.length);
+
+  const openProduct = (product) => {
+    clearTimeout(megaCloseTimer.current);
+    setMegaOpen(false);
+    setMobileMenuOpen(false);
+    onSelectProduct(product);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,38 +52,13 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
   const handleNavClick = (id) => {
     setActivePage(id);
     setMobileMenuOpen(false);
+    setMegaOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <>
-      {/* Top micro bar for corporate authenticity */}
-      <div className="top-utility-bar">
-        <div className="container utility-content">
-          <div className="utility-left">
-            <span>GSTIN: <strong>{settings.gstin}</strong></span>
-            <span className="divider">•</span>
-            <span className="tagline-badge">SWASTIK BRAND PACKAGING</span>
-          </div>
-          <div className="utility-right">
-            <a href={`tel:${settings.phone}`} className="utility-link">
-              <Phone size={13} /> {settings.phone}
-            </a>
-            <a href={`mailto:${settings.email}`} className="utility-link">
-              <Mail size={13} /> {settings.email}
-            </a>
-            {onOpenAdmin && (
-              <button 
-                onClick={onOpenAdmin} 
-                className="utility-admin-link"
-                title="Open Admin Operations Portal"
-              >
-                <Lock size={12} /> Admin Portal
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+
 
       {/* Main Navigation Bar */}
       <header className={`main-navbar ${isScrolled ? 'navbar-scrolled' : ''}`}>
@@ -79,6 +80,51 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
           <nav className="desktop-nav">
             {navLinks.map((link) => {
               const isActive = activePage === link.id;
+              if (link.id === 'products') {
+                return (
+                  <div
+                    key={link.id}
+                    className="nav-mega-wrap"
+                    onMouseEnter={showMega}
+                    onMouseLeave={hideMega}
+                  >
+                    <button
+                      onClick={() => handleNavClick(link.id)}
+                      onFocus={showMega}
+                      className={`nav-link ${isActive || megaOpen ? 'nav-link-active' : ''}`}
+                      aria-expanded={megaOpen}
+                    >
+                      {link.label}
+                      {isActive && <span className="nav-active-pill" />}
+                    </button>
+
+                    {megaOpen && (
+                      <div className="mega-menu">
+                        <div className="container mega-inner">
+                          <div className="mega-columns">
+                            {productGroups.map(group => (
+                              <div key={group.category} className="mega-col">
+                                <h4 className="mega-heading">{group.category}</h4>
+                                <ul>
+                                  {group.items.map(p => (
+                                    <li key={p.id}>
+                                      <button className="mega-link" onClick={() => openProduct(p)}>{p.name}</button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mega-actions">
+                            <button className="mega-btn mega-btn-gold" onClick={() => handleNavClick('products')}>ALL PRODUCTS</button>
+                            <button className="mega-btn mega-btn-navy" onClick={() => { setMegaOpen(false); onOpenQuoteModal(); }}>GET A QUOTE</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
               return (
                 <button
                   key={link.id}
@@ -116,7 +162,31 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
         {mobileMenuOpen && (
           <div className="mobile-menu-dropdown fade-in">
             <div className="mobile-links">
-              {navLinks.map((link) => (
+              {navLinks.map((link) => link.id === 'products' ? (
+                <div key={link.id} className="mobile-products">
+                  <button
+                    onClick={() => setMobileProductsOpen(o => !o)}
+                    className={`mobile-nav-link ${activePage === link.id ? 'mobile-active' : ''}`}
+                    aria-expanded={mobileProductsOpen}
+                  >
+                    <span>{link.label}</span>
+                    <ChevronDown size={16} className={`nav-caret ${mobileProductsOpen ? 'nav-caret-open' : ''}`} />
+                  </button>
+                  {mobileProductsOpen && (
+                    <div className="mobile-mega">
+                      {productGroups.map(group => (
+                        <div key={group.category} className="mobile-mega-group">
+                          <h4 className="mega-heading">{group.category}</h4>
+                          {group.items.map(p => (
+                            <button key={p.id} className="mega-link" onClick={() => openProduct(p)}>{p.name}</button>
+                          ))}
+                        </div>
+                      ))}
+                      <button className="mega-btn mega-btn-gold" onClick={() => handleNavClick('products')}>ALL PRODUCTS</button>
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <button
                   key={link.id}
                   onClick={() => handleNavClick(link.id)}
@@ -262,6 +332,7 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
         /* Desktop Nav */
         .desktop-nav {
           display: flex;
+          align-self: stretch;
           align-items: center;
           gap: 28px;
         }
@@ -294,6 +365,127 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
           border-radius: 2px;
         }
 
+        /* Products mega menu */
+        .nav-mega-wrap {
+          display: flex;
+          align-items: center;
+          align-self: stretch;
+        }
+        .nav-mega-wrap > .nav-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .nav-caret {
+          transition: transform 0.2s ease;
+        }
+        .nav-caret-open {
+          transform: rotate(180deg);
+        }
+        .mega-menu {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          background: #f8fafc;
+          border-top: 1px solid var(--border-light);
+          box-shadow: 0 18px 30px rgba(15, 23, 42, 0.12);
+          animation: fadeIn 0.18s ease-out;
+          max-height: calc(100vh - 80px);
+          overflow-y: auto;
+        }
+        .mega-inner {
+          padding-top: 36px;
+          padding-bottom: 32px;
+        }
+        .mega-columns {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 32px 48px;
+          max-width: 1000px;
+          margin: 0 auto;
+        }
+        .mega-heading {
+          font-family: var(--font-heading);
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: #0b1a30;
+          padding-bottom: 10px;
+          margin-bottom: 10px;
+          border-bottom: 2px solid var(--primary-green);
+          display: inline-block;
+        }
+        .mega-col ul {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .mega-link {
+          background: none;
+          border: none;
+          text-align: left;
+          font-family: var(--font-body);
+          font-size: 0.92rem;
+          color: #475569;
+          padding: 6px 0;
+          cursor: pointer;
+          transition: color 0.15s ease, transform 0.15s ease;
+        }
+        .mega-link:hover {
+          color: var(--primary-green);
+          transform: translateX(3px);
+        }
+        .mega-actions {
+          display: flex;
+          justify-content: center;
+          gap: 14px;
+          margin-top: 32px;
+        }
+        .mega-btn {
+          font-family: var(--font-heading);
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.6px;
+          padding: 11px 24px;
+          border-radius: 4px;
+          border: none;
+          cursor: pointer;
+          transition: filter 0.2s ease, transform 0.2s ease;
+        }
+        .mega-btn:hover {
+          filter: brightness(1.08);
+          transform: translateY(-1px);
+        }
+        .mega-btn-gold {
+          background: #e0aa4a;
+          color: #1f2937;
+        }
+        .mega-btn-navy {
+          background: var(--primary-navy);
+          color: #fff;
+        }
+        .mobile-mega {
+          padding: 12px 4px 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .mobile-mega-group {
+          display: flex;
+          flex-direction: column;
+        }
+        .mobile-mega-group .mega-heading {
+          font-size: 0.85rem;
+          margin-bottom: 4px;
+          align-self: flex-start;
+        }
+        .mobile-mega .mega-link {
+          padding: 8px 4px;
+        }
+
         .nav-actions {
           display: flex;
           align-items: center;
@@ -317,6 +509,8 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
 
         /* Mobile Dropdown */
         .mobile-menu-dropdown {
+          max-height: calc(100vh - 64px);
+          overflow-y: auto;
           background-color: #ffffff;
           border-top: 1px solid var(--border-light);
           padding: 20px;

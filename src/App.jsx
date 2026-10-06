@@ -150,6 +150,7 @@ function MainApp() {
         setActivePage={setActivePage} 
         onOpenQuoteModal={() => openQuoteForProduct('')} 
         onOpenAdmin={handleOpenAdmin}
+        onSelectProduct={openProduct}
       />
 
       <main className="public-content">

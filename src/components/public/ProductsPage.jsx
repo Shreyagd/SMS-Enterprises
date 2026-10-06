@@ -1,7 +1,84 @@
 import React, { useState } from 'react';
-import { ArrowRight, CheckCircle, Search, HelpCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, Search, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { PRODUCT_CATEGORIES } from '../../data/products';
+
+const ProductCard = ({ product, onSelectProduct, onOpenQuoteModal }) => {
+  const [imgIndex, setImgIndex] = useState(0);
+  
+  const images = product.images && product.images.length > 0 ? product.images : [product.image];
+  
+  const nextImage = (e) => {
+    e.stopPropagation();
+    setImgIndex((prev) => (prev + 1) % images.length);
+  };
+  
+  const prevImage = (e) => {
+    e.stopPropagation();
+    setImgIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  return (
+    <div
+      className="card product-item-card"
+      role="link"
+      tabIndex={0}
+      onClick={() => onSelectProduct(product)}
+      onKeyDown={(e) => e.key === 'Enter' && onSelectProduct(product)}
+    >
+      <div className="product-thumb-wrap">
+        <img 
+          src={images[imgIndex]} 
+          alt={product.name} 
+          className="product-thumb-img"
+          loading="lazy"
+        />
+        {images.length > 1 && (
+          <div className="carousel-controls">
+            <button className="carousel-btn left" onClick={prevImage}>
+              <ChevronLeft size={18} />
+            </button>
+            <button className="carousel-btn right" onClick={nextImage}>
+              <ChevronRight size={18} />
+            </button>
+            <div className="carousel-indicators">
+              {images.map((_, idx) => (
+                <span key={idx} className={`dot ${idx === imgIndex ? 'active' : ''}`} />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="product-card-info">
+        <span className="product-category-tag">{product.category}</span>
+        <h3 className="product-title">{product.name}</h3>
+        <p className="product-snippet">{product.subtitle}</p>
+
+        <div className="product-key-specs">
+          {product.thickness && (
+            <div className="spec-pill">
+              <span>Thickness:</span> <strong>{product.thickness}</strong>
+            </div>
+          )}
+        </div>
+
+        <div className="product-card-bottom-actions">
+          <span className="btn-link-details">
+            View details <ArrowRight size={14} />
+          </span>
+
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={(e) => { e.stopPropagation(); onOpenQuoteModal(product.name); }}
+          >
+            GET A QUOTE
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelectProduct }) {
   const { products } = useData();
@@ -123,53 +200,12 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
               ) : (
                 <div className="products-cards-grid">
                   {filteredProducts.map((product) => (
-                                        <div
-                      key={product.id}
-                      className="card product-item-card"
-                      role="link"
-                      tabIndex={0}
-                      onClick={() => onSelectProduct(product)}
-                      onKeyDown={(e) => e.key === 'Enter' && onSelectProduct(product)}
-                    >
-                      <div className="product-thumb-wrap">
-                        <img 
-                          src={product.image} 
-                          alt={product.name} 
-                                                    className="product-thumb-img"
-                          loading="lazy"
-                        />
-                        {product.badge && (
-                          <span className="product-card-badge">{product.badge}</span>
-                        )}
-                      </div>
-
-                      <div className="product-card-info">
-                        <span className="product-category-tag">{product.category}</span>
-                        <h3 className="product-title">{product.name}</h3>
-                        <p className="product-snippet">{product.subtitle}</p>
-
-                        <div className="product-key-specs">
-                                                    {product.thickness && (
-                            <div className="spec-pill">
-                              <span>Thickness:</span> <strong>{product.thickness}</strong>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="product-card-bottom-actions">
-                                                    <span className="btn-link-details">
-                            View details <ArrowRight size={14} />
-                          </span>
-
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={(e) => { e.stopPropagation(); onOpenQuoteModal(product.name); }}
-                          >
-                            GET A QUOTE
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      onSelectProduct={onSelectProduct} 
+                      onOpenQuoteModal={onOpenQuoteModal} 
+                    />
                   ))}
                 </div>
               )}
@@ -397,6 +433,63 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
         }
         .product-item-card:hover .product-thumb-img {
           transform: scale(1.06);
+        }
+        .carousel-controls {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 10px;
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+        .product-thumb-wrap:hover .carousel-controls {
+          opacity: 1;
+        }
+        .carousel-btn {
+          pointer-events: auto;
+          background: rgba(255, 255, 255, 0.8);
+          border: none;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #333;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          transition: all 0.2s ease;
+        }
+        .carousel-btn:hover {
+          background: #fff;
+          color: var(--primary-green);
+          transform: scale(1.1);
+        }
+        .carousel-indicators {
+          position: absolute;
+          bottom: 12px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          gap: 6px;
+          pointer-events: none;
+        }
+        .carousel-indicators .dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.5);
+          transition: all 0.2s;
+        }
+        .carousel-indicators .dot.active {
+          background: #fff;
+          transform: scale(1.2);
         }
         .product-card-badge {
           position: absolute;

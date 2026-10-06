@@ -156,7 +156,7 @@ export function DataProvider({ children }) {
   });
 
   const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('sms_products_v2');
+    const saved = localStorage.getItem('sms_products_v3');
     return saved ? JSON.parse(saved) : DEFAULT_PRODUCTS;
   });
 
@@ -214,7 +214,12 @@ export function DataProvider({ children }) {
   }, [settings]);
 
   useEffect(() => {
-    localStorage.setItem('sms_products_v2', JSON.stringify(products));
+    try {
+      localStorage.setItem('sms_products_v3', JSON.stringify(products));
+    } catch {
+      // Uploaded images can exceed the browser storage quota
+      showToast('Browser storage is full — remove some uploaded images or use image URLs.', 'error');
+    }
   }, [products]);
 
   useEffect(() => {

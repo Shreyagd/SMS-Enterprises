@@ -2,22 +2,103 @@
 // Each product page is built from `sections`: { title, text?: [], list?: [], table?: { head, rows } }.
 // List items written as "Label: description" render the label in bold.
 
-export const PRODUCT_CATEGORIES = [
-  'Shrink & Stretch Films',
-  'Industrial Films & Liners',
-  'Agricultural Films',
-  'Flexible Packaging'
-];
+// Main headings from the product doc, in display order
+export const PRODUCT_CATEGORIES = ['FMCG', 'Industrial', 'Agri'];
 
 const IMG = '/images/products/';
 
-export const PRODUCTS = [
+const CATALOGUE = [
+  {
+    id: 'ldpe-lamination-film',
+    slug: 'ldpe-lamination-film',
+    name: 'LDPE Lamination Film',
+    category: 'Industrial',
+    badge: 'Sealant Layer',
+    featured: false,
+    subtitle: 'Multi-layer co-extruded PE sealant film for flexible packaging laminates.',
+    description: 'LDPE Lamination Film is a specialized, multi-layer co-extruded polyethylene film engineered to serve as the inner sealant and functional backing layer in flexible packaging laminates.',
+    thickness: '20 - 150+ Micron',
+    width: 'Custom',
+    elongation: 'SIT 95°C - 125°C',
+    coreSize: '3-Layer / 5-Layer Co-ex PE',
+    image: '/images/packaging_showroom.jpg',
+    images: ['/images/packaging_showroom.jpg', '/images/rotogravure_press.jpg'],
+    applications: ['Food & snack pouches', 'Spice, liquid & dairy packs', 'Personal care & industrial bags'],
+    sections: [
+      {
+        title: 'How It Works',
+        text: ['In composite packaging (pouches, sachets, and roll stock), outer materials like Polyester (PET), BOPP, or Aluminum Foil provide printability and barrier properties, but they cannot seal on their own. LDPE lamination film is permanently bonded (via solventless or solvent-based adhesive lamination) to these substrates. When passed through heated sealing jaws, it melts quickly to form an airtight, leak-proof, and burst-resistant hermetic seal.']
+      },
+      {
+        title: 'Key Film Types & Formulations',
+        list: [
+          'Natural Clear (Transparent) Lamination Film: High-clarity grade used when consumers need to see the packaged product through transparent windows or clear pouches.',
+          'Milky White (Opaque) Lamination Film: Formulated with high-opacity titanium dioxide (TiO₂). Enhances printed graphic contrast, eliminates the need for full white ink coverage, and shields light-sensitive goods.',
+          'Metallocene High-Integrity (mLLDPE) Sealant Film: Blended with metallocene plastomers for ultra-low sealing temperatures, exceptional hot-tack, and the ability to seal through grease, liquid oils, or dusty powders.',
+          'Two-Tone / Colored Lamination Film: Specialty co-extruded films (such as Black/White or Yellow/White) for liquid pouches and specialized industrial packaging.',
+          'Low-SIT (Low Seal Initiation Temperature) Film: Engineered to initiate seals at lower temperatures, boosting machine speeds on high-speed Form-Fill-Seal (FFS) lines without thermal distortion.'
+        ]
+      },
+      {
+        title: 'Core Technical Features',
+        list: [
+          'High Hot-Tack & Seal-Through Contamination: Melts and bonds securely even when sealing surfaces are contaminated with fine powders, fat droplets, or moisture.',
+          'Consistent Corona Treatment: Treated on the lamination side to a precise surface tension (38 to 44 dynes/cm), ensuring permanent adhesive bonding with zero delamination risk.',
+          'Controlled Slip & COF (Coefficient of Friction): Tailored slip properties ensure smooth web passage across high-speed lamination and bag-making machines without wrinkling or telescoping.',
+          'Puncture & Dart Drop Resistance: Absorbs mechanical and hydraulic shock during transit, preventing bag rupture during crate drops.',
+          'Food Contact Safety: Manufactured from 100% virgin, food-grade resins—free from plasticizers, heavy metals, or toxic slip additives—ensuring zero odor or taint transfer.'
+        ]
+      },
+      {
+        title: 'Technical Properties & Specifications',
+        table: {
+          head: ['Property / Parameter', 'Test Standard', 'Typical Specification Range'],
+          rows: [
+            ['Film Structure', 'Blown Co-Extrusion', '3-Layer / 5-Layer Co-Ex PE'],
+            ['Resin Matrix', 'ISO 1183', 'Pure Virgin LDPE + LLDPE + mLLDPE'],
+            ['Thickness Range', 'ASTM D5947 / ISO 4593', '20 µm to 150+ µm (Typically 25, 30, 40, 50, 75, 100 µm)'],
+            ['Surface Treatment', 'ASTM D2578', 'One-side Corona Treated: 38 – 44 Dynes/cm'],
+            ['Coefficient of Friction (COF)', 'ASTM D1894', 'Dynamic COF: 0.18 – 0.28 (Untreated side)'],
+            ['Seal Initiation Temp (SIT)', 'Heat Seal Curve', '95°C to 125°C (Based on formulation)'],
+            ['Seal Strength', 'ASTM F88', '≥ 20 to 50+ N / 15 mm (Depends on micron)'],
+            ['Dart Impact Strength', 'ASTM D1709', '≥ 250 – 600+ g'],
+            ['Tensile Strength (MD/TD)', 'ASTM D882', 'MD: ≥ 24 – 35 MPa / TD: ≥ 20 – 30 MPa'],
+            ['Compliance', 'International Standards', 'US FDA 21 CFR 177.1520 / EU 10/2011 / IS 9845']
+          ]
+        }
+      },
+      {
+        title: 'Common Laminate Combinations & Sector Formats',
+        text: ['LDPE lamination film is the backbone of virtually all multi-layer flexible packaging formats across diverse industries:'],
+        table: {
+          head: ['Sector', 'Laminate', 'Formats', 'Uses'],
+          rows: [
+            ['Food & Snacks', 'PET + LDPE / BOPP + Met-BOPP + LDPE', 'Center-seal pillow pouches, continuous VFFS rolls', 'Namkeen, chips, biscuits, dry fruits, pasta, confectionery'],
+            ['Spices, Seasonings & Powders', 'PET + Met-PET + LDPE', '3-side seal sachets, stand-up zipper pouches (Doypacks)', 'Ground spices (Haldi, Mirch), blended masalas, instant mixes, protein powders'],
+            ['Liquid Packaging & Dairy', 'PET + Nylon + LDPE / 5-Layer Co-Ex PE', 'Spouted stand-up pouches, pillow pouches', 'Edible cooking oils, ghee, liquid milk, sauces, fruit concentrates'],
+            ['Personal Care & Home Hygiene', 'PET + White LDPE', 'Refill spouted packs, flat sachets, quad-seal bags', 'Liquid hand soap, shampoo sachets, laundry detergent powders, floor cleaner refills'],
+            ['Heavy Agriculture & Industrial', 'PET + PE / BOPA + Alu Foil + PE', 'Side-gusset bags, heavy-duty sacks, D-cut bags', '5 kg–10 kg Atta (flour) sacks, pesticide powders, water-soluble fertilizers, hardware components']
+          ]
+        }
+      },
+      {
+        title: 'Business & Operational Benefits',
+        list: [
+          'Maximizes Converter Line Speeds: Tight gauge tolerance (±3% to 5%) and consistent slip ensure smooth runnability at 300+ meters per minute on solventless laminators.',
+          'Drastically Cuts Packaging Rejections: Eliminates pouch leakage, seam opening, and pinhole failures on end-customer pouch-filling lines.',
+          'Enhanced Shelf Appeal: Clean optical clarity or brilliant milky-white opacity gives finished consumer pouches a crisp, premium look.',
+          'Cost Optimization (Downgauging): High-strength metallocene formulations allow converters to use thinner micron films while delivering equal or superior seal performance.',
+          '100% Recyclable: Polyethylene base fits directly into circular PE recycling streams (RIC #4 LDPE).'
+        ]
+      }
+    ]
+  },
   // ───────────────────────── Shrink & Stretch Films ─────────────────────────
   {
     id: 'ldpe-shrink-film',
     slug: 'ldpe-shrink-film',
     name: 'LDPE Shrink Film',
-    category: 'Shrink & Stretch Films',
+    category: 'FMCG',
     badge: 'Secondary Packaging',
     featured: true,
     subtitle: 'Industry standard for secondary packaging, bundling and surface transit protection.',
@@ -26,8 +107,8 @@ export const PRODUCTS = [
     width: '150 mm - 2000 mm',
     elongation: 'Up to 60% MD / 20-40% CD shrink',
     coreSize: 'Film Rolls & Bags',
-    image: IMG + 'ldpe-shrink-1.jpg',
-    images: [IMG + 'ldpe-shrink-1.jpg', IMG + 'ldpe-shrink-2.jpg'],
+    image: '/images/products/ldpe_shrink_film_1.jpeg',
+    images: ['/images/products/ldpe_shrink_film_1.jpeg', '/images/products/ldpe_shrink_film_2.jpeg'],
     applications: ['Beverage multipacks (cans, PET, glass)', 'Industrial components & machinery', 'Building materials & palletized loads'],
     sections: [
       {
@@ -98,7 +179,7 @@ export const PRODUCTS = [
     id: 'stretch-hood-film',
     slug: 'stretch-hood-film',
     name: 'Stretch Hood / Shrink Hood Film',
-    category: 'Shrink & Stretch Films',
+    category: 'Industrial',
     badge: 'Heat-Free Palletizing',
     featured: true,
     subtitle: 'High-performance stretch hood film for beverage & industrial palletizing.',
@@ -107,8 +188,8 @@ export const PRODUCTS = [
     width: '1,000 mm - 2,400 mm (open)',
     elongation: 'Dual-directional elastic memory',
     coreSize: '76 mm (3") / 152 mm (6")',
-    image: IMG + 'stretch-hood-1.jpg',
-    images: [IMG + 'stretch-hood-1.jpg', IMG + 'stretch-hood-2.jpg'],
+    image: '/images/products/stretch_hood_film_roll_1.jpeg',
+    images: ['/images/products/stretch_hood_film_roll_1.jpeg', '/images/products/stretch_hood_film_roll_2.jpeg'],
     applications: ['Beverage bottling & canning pallets', 'Construction & building materials', 'Chemicals, white goods & electronics'],
     sections: [
       {
@@ -170,7 +251,7 @@ export const PRODUCTS = [
     id: 'collation-shrink-film',
     slug: 'collation-shrink-film',
     name: 'Collation Shrink Film',
-    category: 'Shrink & Stretch Films',
+    category: 'Industrial',
     badge: 'Trayless Bundling',
     featured: true,
     subtitle: 'Multi-layer bundle shrink film that groups items into compact, rigid sales units.',
@@ -250,7 +331,7 @@ export const PRODUCTS = [
     id: 'industrial-stretch-film',
     slug: 'industrial-stretch-film',
     name: 'Industrial Stretch Film',
-    category: 'Shrink & Stretch Films',
+    category: 'Industrial',
     badge: 'Hand & Machine Grades',
     featured: true,
     subtitle: 'Highly elastic LLDPE stretch wrap for pallet unitization, warehousing and export.',
@@ -259,8 +340,8 @@ export const PRODUCTS = [
     width: '50 mm - 600 mm (max 1.5 m)',
     elongation: 'Pre-stretch up to 300%',
     coreSize: '25 mm / 31 mm / 76.2 mm',
-    image: '/images/prod_stretch_film.jpg',
-    images: ['/images/prod_stretch_film.jpg', '/images/pallet_machine.jpg', '/images/hero_pallet.jpg'],
+    image: '/images/products/stretch_film_1.jpeg',
+    images: ['/images/products/stretch_film_1.jpeg', '/images/products/stretch_film_2.jpeg'],
     applications: ['Logistics, warehousing & 3PL', 'Food, beverage & pharma pallets', 'Chemicals, automotive & construction'],
     sections: [
       {
@@ -343,7 +424,7 @@ export const PRODUCTS = [
     id: 'recycled-stretch-wrap',
     slug: 'recycled-stretch-wrap',
     name: 'Recycled Stretch Wrap',
-    category: 'Shrink & Stretch Films',
+    category: 'Industrial',
     badge: '40% Recycled Content',
     featured: false,
     subtitle: 'Sustainable stretch wrap with minimum 40% recycled content — without compromising strength.',
@@ -384,7 +465,7 @@ export const PRODUCTS = [
     id: 'vci-film',
     slug: 'vci-film',
     name: 'VCI Film – Rolls & Pouches',
-    category: 'Industrial Films & Liners',
+    category: 'Industrial',
     badge: 'Anti-Corrosion',
     featured: true,
     subtitle: 'High-performance VCI anti-corrosion film for industrial & export packaging.',
@@ -393,8 +474,8 @@ export const PRODUCTS = [
     width: '100 mm - 2000 mm',
     elongation: 'Ferrous / Non-Ferrous / Multi-Metal',
     coreSize: 'Rolls, Tubing, Bags',
-    image: '/images/pallet_machine.jpg',
-    images: ['/images/pallet_machine.jpg'],
+    image: '/images/products/vci_stretch_film_1.jpeg',
+    images: ['/images/products/vci_stretch_film_1.jpeg', '/images/products/vci_stretch_film_3.jpeg'],
     applications: ['Automotive & auto-ancillary', 'Steel mills & metal processing', 'Export & maritime logistics'],
     sections: [
       {
@@ -472,7 +553,7 @@ export const PRODUCTS = [
     id: 'vci-stretch-film',
     slug: 'vci-stretch-film',
     name: 'VCI Stretch Film',
-    category: 'Industrial Films & Liners',
+    category: 'Industrial',
     badge: 'Rust Protection',
     featured: false,
     subtitle: 'Stretch wrap combined with Volatile Corrosion Inhibitor technology for metal products.',
@@ -481,8 +562,8 @@ export const PRODUCTS = [
     width: 'On request',
     elongation: 'Excellent stretch & recovery',
     coreSize: 'Standard stretch cores',
-    image: '/images/prod_stretch_film.jpg',
-    images: ['/images/prod_stretch_film.jpg'],
+    image: '/images/products/vci_stretch_film_2.jpeg',
+    images: ['/images/products/vci_stretch_film_2.jpeg'],
     applications: ['Metal coils & sheets', 'Machinery & equipment', 'Storage & export transit'],
     sections: [
       {
@@ -538,7 +619,7 @@ export const PRODUCTS = [
     id: 'ldpe-liners-pouches',
     slug: 'ldpe-liners-pouches',
     name: 'LDPE Liners, Pouches & Garbage Bags',
-    category: 'Industrial Films & Liners',
+    category: 'Industrial',
     badge: 'Plain & Printed',
     featured: false,
     subtitle: 'PE liners, garbage bags and bulk bags — plain or printed, in custom sizes and microns.',
@@ -618,7 +699,7 @@ export const PRODUCTS = [
     id: 'greenhouse-film',
     slug: 'greenhouse-film',
     name: 'Greenhouse (Polyhouse) Film',
-    category: 'Agricultural Films',
+    category: 'Agri',
     badge: '5 & 7 Layer',
     featured: true,
     subtitle: 'High-performance multi-layer greenhouse film for year-round protected cultivation.',
@@ -680,7 +761,7 @@ export const PRODUCTS = [
     id: 'silage-stretch-film',
     slug: 'silage-stretch-film',
     name: 'Silage Stretch Film',
-    category: 'Agricultural Films',
+    category: 'Agri',
     badge: '12-18 Month UV',
     featured: true,
     subtitle: 'Multi-layer agri-wrap / bale wrap for airtight silage and haylage preservation.',
@@ -689,8 +770,8 @@ export const PRODUCTS = [
     width: '250 / 500 / 750 mm',
     elongation: 'Pre-stretch up to 70-75%',
     coreSize: '1,500 m / 1,800 m rolls',
-    image: IMG + 'silage-stretch.jpg',
-    images: [IMG + 'silage-stretch.jpg', '/images/prod_agri_film.jpg'],
+    image: '/images/products/silage_stretch_film_1.jpeg',
+    images: ['/images/products/silage_stretch_film_1.jpeg', '/images/products/silage_stretch_film_2.jpeg', '/images/products/silage_stretch_film_3.jpeg'],
     applications: ['Round & square bale wrapping', 'Dairy & livestock farms', 'Outdoor feed storage'],
     sections: [
       {
@@ -750,7 +831,7 @@ export const PRODUCTS = [
     id: 'agricultural-mulch-film',
     slug: 'agricultural-mulch-film',
     name: 'Agricultural Mulch Film',
-    category: 'Agricultural Films',
+    category: 'Agri',
     badge: 'Weed & Water Control',
     featured: true,
     subtitle: 'Polyethylene ground cover that conserves water, suppresses weeds and boosts yield.',
@@ -759,8 +840,8 @@ export const PRODUCTS = [
     width: 'Custom bed widths',
     elongation: 'Machine-laying grade',
     coreSize: 'Silver/Black, Black, White & more',
-    image: IMG + 'mulch-film.jpg',
-    images: [IMG + 'mulch-film.jpg'],
+    image: '/images/products/agri_mulch_film_1.jpeg',
+    images: ['/images/products/agri_mulch_film_1.jpeg', '/images/products/agri_mulch_film_2.jpeg', '/images/products/agri_mulch_film_3.jpeg'],
     applications: ['Open-field vegetables', 'Orchards & berry farming', 'Polyhouse & organic farming'],
     sections: [
       {
@@ -823,7 +904,7 @@ export const PRODUCTS = [
     id: 'low-tunnel-film',
     slug: 'low-tunnel-film',
     name: 'Low Tunnel Film',
-    category: 'Agricultural Films',
+    category: 'Agri',
     badge: 'Early Harvest',
     featured: false,
     subtitle: 'Agricultural low tunnel film for microclimate control & early harvest.',
@@ -832,8 +913,8 @@ export const PRODUCTS = [
     width: '1.0 m - 5.0 m',
     elongation: 'Anti-fog, light diffusion',
     coreSize: 'Clear, slight yellow',
-    image: IMG + 'low-tunnel.jpg',
-    images: [IMG + 'low-tunnel.jpg'],
+    image: '/images/products/agri_low_tunnel_film_1.jpeg',
+    images: ['/images/products/agri_low_tunnel_film_1.jpeg', '/images/products/agri_low_tunnel_film_2.jpeg'],
     applications: ['Cucurbits & melons', 'Tomatoes, capsicum & chillies', 'Strawberries & seedbeds'],
     sections: [
       {
@@ -898,7 +979,7 @@ export const PRODUCTS = [
     id: 'milk-packaging-film',
     slug: 'milk-packaging-film',
     name: 'Milk Packaging Film',
-    category: 'Flexible Packaging',
+    category: 'FMCG',
     badge: 'Food Grade',
     featured: true,
     subtitle: 'Multi-layer dairy pouch film for high-speed Form-Fill-Seal liquid packaging.',
@@ -907,8 +988,8 @@ export const PRODUCTS = [
     width: '320 - 325 mm / Custom',
     elongation: '3-Layer / 5-Layer',
     coreSize: '76 mm (3")',
-    image: '/images/packaging_showroom.jpg',
-    images: ['/images/packaging_showroom.jpg'],
+    image: '/images/products/milk_packaging_1.jpeg',
+    images: ['/images/products/milk_packaging_1.jpeg', '/images/products/milk_packaging_2.jpeg'],
     applications: ['Dairy processing plants', 'Plant-based beverages', 'Edible oils & water pouches'],
     sections: [
       {
@@ -993,7 +1074,7 @@ export const PRODUCTS = [
     id: 'bopp-wrap-around-labels',
     slug: 'bopp-wrap-around-labels',
     name: 'Wrap-Around BOPP Labels',
-    category: 'Flexible Packaging',
+    category: 'FMCG',
     badge: '360° Branding',
     featured: false,
     subtitle: 'Continuous BOPP film labels for FMCG & beverage bottles on high-speed rotary labellers.',
@@ -1002,8 +1083,8 @@ export const PRODUCTS = [
     width: 'Custom label height',
     elongation: '300 - 800+ bottles/min',
     coreSize: 'Roll form',
-    image: '/images/rotogravure_press.jpg',
-    images: ['/images/rotogravure_press.jpg', '/images/packaging_showroom.jpg'],
+    image: '/images/products/pearlizes_bopp_roll_1.jpeg',
+    images: ['/images/products/pearlizes_bopp_roll_1.jpeg', '/images/products/pearlizes_bopp_roll_2.jpeg', '/images/products/pearlizes_bopp_roll_3.jpeg'],
     applications: ['Packaged drinking water', 'Soft drinks & juices', 'Edible oils, home & personal care'],
     sections: [
       {
@@ -1057,7 +1138,7 @@ export const PRODUCTS = [
     id: 'pearlised-bopp-ice-cream-pouches',
     slug: 'pearlised-bopp-ice-cream-pouches',
     name: 'Pearlised BOPP Ice Cream Pouches',
-    category: 'Flexible Packaging',
+    category: 'FMCG',
     badge: 'Cold-Seal Ready',
     featured: false,
     subtitle: 'Premium pearlised BOPP flow-wrap packaging for ice creams and frozen confectionery.',
@@ -1066,8 +1147,8 @@ export const PRODUCTS = [
     width: 'Custom',
     elongation: '150 - 400+ packs/min',
     coreSize: 'Roll form (HFFS)',
-    image: '/images/packaging_showroom.jpg',
-    images: ['/images/packaging_showroom.jpg'],
+    image: '/images/products/ice_cream_rolls_1.jpeg',
+    images: ['/images/products/ice_cream_rolls_1.jpeg', '/images/products/ice_cream_rolls_2.jpeg', '/images/products/ice_cream_rolls_3.jpeg'],
     applications: ['Ice creams & frozen treats', 'Chocolates & bakery snacks', 'Premium soap wrapping'],
     sections: [
       {
@@ -1119,7 +1200,7 @@ export const PRODUCTS = [
     id: 'masala-spice-packaging-film',
     slug: 'masala-spice-packaging-film',
     name: 'Masala & Spice Packaging Film',
-    category: 'Flexible Packaging',
+    category: 'FMCG',
     badge: 'Aroma Lock',
     featured: false,
     subtitle: 'Multi-layer laminated barrier film that locks in the aroma of whole & ground spices.',
@@ -1128,8 +1209,8 @@ export const PRODUCTS = [
     width: 'Custom',
     elongation: '2-Ply / 3-Ply laminates',
     coreSize: '76 mm (3")',
-    image: '/images/packaging_showroom.jpg',
-    images: ['/images/packaging_showroom.jpg', '/images/rotogravure_press.jpg'],
+    image: '/images/products/masala_packaging_1.jpeg',
+    images: ['/images/products/masala_packaging_1.jpeg', '/images/products/masala_packaging_2.jpeg', '/images/products/masala_packaging_3.jpeg', '/images/products/masala_packaging_4.jpeg'],
     applications: ['Ground spices & masala blends', 'Whole spices', 'Instant seasonings'],
     sections: [
       {
@@ -1204,7 +1285,7 @@ export const PRODUCTS = [
     id: 'agro-chemical-pouches',
     slug: 'agro-chemical-pouches',
     name: 'Agro Chemical Packaging Pouches',
-    category: 'Flexible Packaging',
+    category: 'Agri',
     badge: 'High Barrier',
     featured: false,
     subtitle: 'Heavy-duty multi-layer barrier pouches for pesticides, fertilizers & crop chemicals.',
@@ -1316,7 +1397,7 @@ export const PRODUCTS = [
     id: 'multi-layer-laminated-pouches',
     slug: 'multi-layer-laminated-pouches',
     name: 'Multi-Layer Laminated Pouches',
-    category: 'Flexible Packaging',
+    category: 'Industrial',
     badge: 'Custom Printed',
     featured: true,
     subtitle: 'Custom laminated pouches for FMCG & industrial packaging — stand-up, zipper, spouted and more.',
@@ -1405,7 +1486,7 @@ export const PRODUCTS = [
     id: 'oil-packaging-film',
     slug: 'oil-packaging-film',
     name: 'Edible & Industrial Oil Packaging Film',
-    category: 'Flexible Packaging',
+    category: 'Industrial',
     badge: 'Seal-Through-Oil',
     featured: false,
     subtitle: 'High-barrier multi-layer film for edible oils, ghee, motor oils and lubricants.',
@@ -1414,8 +1495,8 @@ export const PRODUCTS = [
     width: '320 - 325 mm / Custom',
     elongation: '3-Layer / 5-Layer / Laminate',
     coreSize: '76 mm (3")',
-    image: '/images/packaging_showroom.jpg',
-    images: ['/images/packaging_showroom.jpg'],
+    image: '/images/products/oil_pouches_1.jpeg',
+    images: ['/images/products/oil_pouches_1.jpeg', '/images/products/oil_pouches_2.jpeg', '/images/products/oil_pouches_3.jpeg'],
     applications: ['Edible cooking oils', 'Ghee & vanaspati', 'Engine oils & lubricants'],
     sections: [
       {
@@ -1477,7 +1558,7 @@ export const PRODUCTS = [
     id: 'atta-flour-packaging-film',
     slug: 'atta-flour-packaging-film',
     name: 'Atta & Flour Packaging Film',
-    category: 'Flexible Packaging',
+    category: 'FMCG',
     badge: 'Burst Proof',
     featured: false,
     subtitle: 'High-strength laminated film for wheat flour, maida, besan and grain flours.',
@@ -1486,8 +1567,8 @@ export const PRODUCTS = [
     width: '1 kg - 25 kg packs',
     elongation: '2-Ply / 3-Ply laminates',
     coreSize: 'Rolls or pre-formed bags',
-    image: '/images/packaging_showroom.jpg',
-    images: ['/images/packaging_showroom.jpg'],
+    image: '/images/products/aata_packaging_1.jpeg',
+    images: ['/images/products/aata_packaging_1.jpeg', '/images/products/aata_packaging_2.jpeg'],
     applications: ['Wheat atta & maida', 'Besan, sooji & millet flours', 'Commercial flour sacks'],
     sections: [
       {
@@ -1543,3 +1624,8 @@ export const PRODUCTS = [
     ]
   }
 ];
+
+// Products listed in the same order as the doc: FMCG, then Industrial, then Agri
+const DOC_ORDER = ['ldpe-shrink-film', 'milk-packaging-film', 'bopp-wrap-around-labels', 'pearlised-bopp-ice-cream-pouches', 'masala-spice-packaging-film', 'atta-flour-packaging-film', 'stretch-hood-film', 'collation-shrink-film', 'ldpe-lamination-film', 'ldpe-liners-pouches', 'vci-film', 'industrial-stretch-film', 'vci-stretch-film', 'multi-layer-laminated-pouches', 'oil-packaging-film', 'recycled-stretch-wrap', 'silage-stretch-film', 'agricultural-mulch-film', 'low-tunnel-film', 'agro-chemical-pouches', 'greenhouse-film'];
+
+export const PRODUCTS = [...CATALOGUE].sort((a, b) => DOC_ORDER.indexOf(a.id) - DOC_ORDER.indexOf(b.id));

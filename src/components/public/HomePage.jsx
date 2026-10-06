@@ -60,6 +60,20 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
     <div className="home-page-root">
       {/* 1. HERO SECTION (Dark theme matching reference mockup) */}
       <section className="hero-section">
+        {/* Background video covering the whole banner */}
+        <video
+          className="hero-bg-video"
+          src="/videos/hero.mp4"
+          poster="/images/hero_pallet.jpg"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+        />
+        <div className="hero-bg-overlay" />
+
         <div className="container hero-container">
           <div className="hero-content">
             <div className="hero-brand-pill">
@@ -98,19 +112,6 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
             </div>
           </div>
 
-          <div className="hero-media-wrap">
-            <div className="hero-image-frame">
-              <img 
-                src="/images/hero_pallet.jpg" 
-                alt="Industrial Stretch Film Pallet Load" 
-                className="hero-image"
-              />
-              <div className="hero-floating-badge">
-                <span className="pulse-dot" />
-                <span>Cast & Blown 5-Layer Extrusion</span>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -385,16 +386,33 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
         .hero-section {
           background-color: #071221;
           color: #ffffff;
-          padding: 80px 0 90px;
+          padding: 100px 0 110px;
+          min-height: 78vh;
+          display: flex;
+          align-items: center;
           position: relative;
           overflow: hidden;
-          background-image: radial-gradient(circle at 80% 20%, rgba(22, 163, 74, 0.15) 0%, transparent 60%);
+        }
+        .hero-bg-video {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          z-index: 0;
+        }
+        .hero-bg-overlay {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          background: linear-gradient(90deg, rgba(7, 18, 33, 0.88) 0%, rgba(7, 18, 33, 0.65) 50%, rgba(7, 18, 33, 0.35) 100%);
         }
         .hero-container {
-          display: grid;
-          grid-template-columns: 1.15fr 0.85fr;
-          gap: 50px;
-          align-items: center;
+          position: relative;
+          z-index: 2;
+        }
+        .hero-content {
+          max-width: 680px;
         }
         .hero-brand-pill {
           display: inline-flex;
@@ -425,7 +443,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
         .hero-subtext {
           font-size: 1.1rem;
           line-height: 1.6;
-          color: #94a3b8;
+          color: #cbd5e1;
           margin-bottom: 34px;
           max-width: 540px;
         }
@@ -437,42 +455,6 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
         }
         .hero-cta {
           box-shadow: 0 6px 25px rgba(22, 163, 74, 0.5);
-        }
-
-        .hero-media-wrap {
-          position: relative;
-        }
-        .hero-image-frame {
-          border-radius: var(--radius-lg);
-          overflow: hidden;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          position: relative;
-        }
-        .hero-image {
-          width: 100%;
-          height: 420px;
-          object-fit: cover;
-          transition: transform 0.6s ease;
-        }
-        .hero-image-frame:hover .hero-image {
-          transform: scale(1.03);
-        }
-        .hero-floating-badge {
-          position: absolute;
-          bottom: 18px;
-          left: 18px;
-          background-color: rgba(7, 18, 33, 0.88);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          padding: 8px 16px;
-          border-radius: var(--radius-full);
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 0.82rem;
-          font-weight: 600;
-          color: #ffffff;
         }
 
         /* 5 Value Badges Strip */
@@ -828,8 +810,13 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
 
         @media (max-width: 991px) {
           .hero-container {
-            grid-template-columns: 1fr;
             text-align: center;
+          }
+          .hero-content {
+            margin: 0 auto;
+          }
+          .hero-bg-overlay {
+            background: rgba(7, 18, 33, 0.72);
           }
           .hero-headline {
             font-size: 2.5rem;
@@ -866,7 +853,8 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
 
         @media (max-width: 640px) {
           .hero-section {
-            padding: 40px 0 50px;
+            padding: 56px 0 64px;
+            min-height: 70vh;
           }
           .hero-headline {
             font-size: 1.85rem;
@@ -883,15 +871,6 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
           }
           .hero-btn-group .btn {
             width: 100%;
-          }
-          .hero-image {
-            height: 240px;
-          }
-          .hero-floating-badge {
-            font-size: 0.72rem;
-            padding: 6px 12px;
-            bottom: 12px;
-            left: 12px;
           }
           .features-grid {
             grid-template-columns: 1fr;

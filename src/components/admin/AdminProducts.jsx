@@ -1,11 +1,38 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { PRODUCT_CATEGORIES } from '../../data/products';
 
+// Resize uploaded photos (max 1200px, JPEG) so they stay small enough to store with the catalogue
+function compressImage(file, maxSize = 1200, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function AdminProducts() {
-  const { products, saveProduct, deleteProduct } = useData();
+  const { products, saveProduct, deleteProduct, showToast } = useData();
   const [editingProduct, setEditingProduct] = useState(null);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const initialForm = {
@@ -17,8 +44,9 @@ export default function AdminProducts() {
     width: '500 mm',
     elongation: 'Up to 300%',
     coreSize: '76 mm',
-    image: '/images/prod_stretch_film.jpg',
-    badge: 'Popular',
+    image: '',
+    images: [],
+    badge: '',
     featured: false,
     applications: ['Pallet wrapping', 'Logistics transit']
   };
@@ -48,8 +76,46 @@ export default function AdminProducts() {
     }));
   };
 
+  // Images: formData.images holds the gallery, formData.image mirrors the first (main) one
+  const formImages = formData.images?.length ? formData.images : (formData.image ? [formData.image] : []);
+
+  const setImages = (images) => {
+    setFormData(prev => ({ ...prev, images, image: images[0] || '' }));
+  };
+
+  const addImageUrl = () => {
+    const url = imageUrlInput.trim();
+    if (!url) return;
+    setImages([...formImages, url]);
+    setImageUrlInput('');
+  };
+
+  const removeImage = (index) => setImages(formImages.filter((_, i) => i !== index));
+
+  const makeMainImage = (index) => {
+    setImages([formImages[index], ...formImages.filter((_, i) => i !== index)]);
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []).filter(f => f.type.startsWith('image/'));
+    e.target.value = '';
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const uploaded = await Promise.all(files.map(compressImage));
+      setImages([...formImages, ...uploaded]);
+    } catch {
+      showToast('Could not read one of the images. Please try another file.', 'error');
+    }
+    setUploading(false);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formImages.length) {
+      showToast('Please add at least one product image.', 'error');
+      return;
+    }
     if (editingProduct) {
       saveProduct({ ...formData, id: editingProduct.id });
     } else {
@@ -245,15 +311,41 @@ export default function AdminProducts() {
                     className="form-input" 
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Image Path / URL</label>
-                  <input 
-                    type="text" 
-                    name="image" 
-                    value={formData.image} 
-                    onChange={handleChange} 
-                    className="form-input" 
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Product Images</label>
+                <p className="img-help">The first image is the main image shown on product cards. Click ★ to make an image the main one.</p>
+                <div className="img-grid">
+                  {formImages.map((src, i) => (
+                    <div key={i} className={`img-tile ${i === 0 ? 'img-main' : ''}`}>
+                      <img src={src} alt={`Product ${i + 1}`} />
+                      {i === 0 ? (
+                        <span className="img-main-tag">Main</span>
+                      ) : (
+                        <button type="button" className="img-btn img-star" title="Set as main image" onClick={() => makeMainImage(i)}>★</button>
+                      )}
+                      <button type="button" className="img-btn img-remove" title="Remove image" onClick={() => removeImage(i)}>
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <label className={`img-upload ${uploading ? 'img-uploading' : ''}`}>
+                    <Upload size={22} />
+                    <span>{uploading ? 'Uploading…' : 'Upload images'}</span>
+                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} hidden disabled={uploading} />
+                  </label>
+                </div>
+                <div className="img-url-row">
+                  <input
+                    type="text"
+                    placeholder="…or paste an image URL / path (e.g. /images/products/photo.jpg)"
+                    value={imageUrlInput}
+                    onChange={(e) => setImageUrlInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addImageUrl(); } }}
+                    className="form-input"
                   />
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={addImageUrl}>Add</button>
                 </div>
               </div>
 
@@ -417,6 +509,91 @@ export default function AdminProducts() {
           .modal-footer .btn {
             width: 100%;
           }
+        }
+        .img-help {
+          font-size: 0.8rem;
+          color: #64748b;
+          margin-bottom: 10px;
+        }
+        .img-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        .img-tile, .img-upload {
+          position: relative;
+          aspect-ratio: 1;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+        .img-tile {
+          border: 2px solid #e2e8f0;
+          background: #f8fafc;
+        }
+        .img-tile.img-main {
+          border-color: var(--primary-green);
+        }
+        .img-tile img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .img-main-tag {
+          position: absolute;
+          left: 6px;
+          bottom: 6px;
+          background: var(--primary-green);
+          color: #fff;
+          font-size: 0.68rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 999px;
+        }
+        .img-btn {
+          position: absolute;
+          top: 6px;
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          background: rgba(15, 23, 42, 0.75);
+          color: #fff;
+          font-size: 0.85rem;
+        }
+        .img-remove { right: 6px; }
+        .img-remove:hover { background: #dc2626; }
+        .img-star { left: 6px; }
+        .img-star:hover { background: var(--primary-green); }
+        .img-upload {
+          border: 2px dashed #cbd5e1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          color: #64748b;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .img-upload:hover {
+          border-color: var(--primary-green);
+          color: var(--primary-green);
+          background: #f0fdf4;
+        }
+        .img-uploading {
+          opacity: 0.6;
+          pointer-events: none;
+        }
+        .img-url-row {
+          display: flex;
+          gap: 8px;
         }
       `}</style>
     </div>
