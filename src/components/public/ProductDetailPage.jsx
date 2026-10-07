@@ -26,8 +26,16 @@ function ListItem({ text }) {
 export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModal, onSelectProduct }) {
   const { products, settings } = useData();
   const product = products.find(p => p.slug === slug || p.id === slug);
-  const images = product ? [product.image, ...(product.images || []).filter(i => i !== product.image)] : [];
+  const [failedImages, setFailedImages] = useState([]);
+  const allImages = product ? [product.image, ...(product.images || []).filter(i => i !== product.image)] : [];
+  // Drop images that fail to load (e.g. a pasted link that isn't an image) so no blank box is shown
+  const loadable = allImages.filter(src => src && !failedImages.includes(src));
+  const images = loadable.length ? loadable : ['/images/packaging_showroom.jpg'];
   const [activeImg, setActiveImg] = useState(0);
+  const markFailed = (src) => {
+    setFailedImages(prev => (prev.includes(src) ? prev : [...prev, src]));
+    setActiveImg(0);
+  };
 
   useEffect(() => {
     setActiveImg(0);
@@ -78,7 +86,7 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
         <div className="container pd-hero-grid">
           <div className="pd-gallery">
             <div className="pd-main-img">
-              <img src={images[activeImg]} alt={product.name} />
+              <img src={images[activeImg] || images[0]} alt={product.name} onError={() => markFailed(images[activeImg] || images[0])} />
               {product.badge && <span className="pd-img-badge">{product.badge}</span>}
             </div>
             {images.length > 1 && (
@@ -90,7 +98,7 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
                     onClick={() => setActiveImg(i)}
                     aria-label={`View image ${i + 1}`}
                   >
-                    <img src={src} alt="" />
+                    <img src={src} alt="" onError={() => markFailed(src)} />
                   </button>
                 ))}
               </div>

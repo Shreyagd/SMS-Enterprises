@@ -3,7 +3,7 @@
 // List items written as "Label: description" render the label in bold.
 
 // Main headings from the product doc, in display order
-export const PRODUCT_CATEGORIES = ['FMCG', 'Industrial', 'Agri'];
+export const PRODUCT_CATEGORIES = ['FMCG', 'Industrial', 'Agriculture'];
 
 const IMG = '/images/products/';
 
@@ -699,7 +699,7 @@ const CATALOGUE = [
     id: 'greenhouse-film',
     slug: 'greenhouse-film',
     name: 'Greenhouse (Polyhouse) Film',
-    category: 'Agri',
+    category: 'Agriculture',
     badge: '5 & 7 Layer',
     featured: true,
     subtitle: 'High-performance multi-layer greenhouse film for year-round protected cultivation.',
@@ -761,7 +761,7 @@ const CATALOGUE = [
     id: 'silage-stretch-film',
     slug: 'silage-stretch-film',
     name: 'Silage Stretch Film',
-    category: 'Agri',
+    category: 'Agriculture',
     badge: '12-18 Month UV',
     featured: true,
     subtitle: 'Multi-layer agri-wrap / bale wrap for airtight silage and haylage preservation.',
@@ -831,7 +831,7 @@ const CATALOGUE = [
     id: 'agricultural-mulch-film',
     slug: 'agricultural-mulch-film',
     name: 'Agricultural Mulch Film',
-    category: 'Agri',
+    category: 'Agriculture',
     badge: 'Weed & Water Control',
     featured: true,
     subtitle: 'Polyethylene ground cover that conserves water, suppresses weeds and boosts yield.',
@@ -904,7 +904,7 @@ const CATALOGUE = [
     id: 'low-tunnel-film',
     slug: 'low-tunnel-film',
     name: 'Low Tunnel Film',
-    category: 'Agri',
+    category: 'Agriculture',
     badge: 'Early Harvest',
     featured: false,
     subtitle: 'Agricultural low tunnel film for microclimate control & early harvest.',
@@ -1285,7 +1285,7 @@ const CATALOGUE = [
     id: 'agro-chemical-pouches',
     slug: 'agro-chemical-pouches',
     name: 'Agro Chemical Packaging Pouches',
-    category: 'Agri',
+    category: 'Agriculture',
     badge: 'High Barrier',
     featured: false,
     subtitle: 'Heavy-duty multi-layer barrier pouches for pesticides, fertilizers & crop chemicals.',

@@ -6,7 +6,10 @@ import { PRODUCT_CATEGORIES } from '../../data/products';
 const ProductCard = ({ product, onSelectProduct, onOpenQuoteModal }) => {
   const [imgIndex, setImgIndex] = useState(0);
   
-  const images = product.images && product.images.length > 0 ? product.images : [product.image];
+  const [failedImages, setFailedImages] = useState([]);
+  const allImages = product.images && product.images.length > 0 ? product.images : [product.image];
+  const loadable = allImages.filter(src => src && !failedImages.includes(src));
+  const images = loadable.length ? loadable : ['/images/packaging_showroom.jpg'];
   
   const nextImage = (e) => {
     e.stopPropagation();
@@ -28,7 +31,12 @@ const ProductCard = ({ product, onSelectProduct, onOpenQuoteModal }) => {
     >
       <div className="product-thumb-wrap">
         <img 
-          src={images[imgIndex]} 
+          src={images[imgIndex] || images[0]}
+          onError={() => {
+            const src = images[imgIndex] || images[0];
+            setFailedImages(prev => (prev.includes(src) ? prev : [...prev, src]));
+            setImgIndex(0);
+          }}
           alt={product.name} 
           className="product-thumb-img"
           loading="lazy"
@@ -85,12 +93,12 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-    // Known categories first, then any custom ones added from the admin panel
-  const categories = ['All', ...new Set([...PRODUCT_CATEGORIES, ...products.map(p => p.category)])];
-  const countFor = (cat) => cat === 'All' ? products.length : products.filter(p => p.category === cat).length;
+  const activeProducts = products.filter(p => !p.archived);
+  const categories = ['All', ...new Set([...PRODUCT_CATEGORIES, ...activeProducts.map(p => p.category)])];
+  const countFor = (cat) => cat === 'All' ? activeProducts.length : activeProducts.filter(p => p.category === cat).length;
 
   const term = searchTerm.toLowerCase();
-  const filteredProducts = products.filter(p => {
+  const filteredProducts = activeProducts.filter(p => {
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     const matchesSearch = [p.name, p.subtitle, p.category, p.description]
       .some(v => (v || '').toLowerCase().includes(term));
@@ -445,13 +453,9 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
           align-items: center;
           justify-content: space-between;
           padding: 0 10px;
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-        .product-thumb-wrap:hover .carousel-controls {
-          opacity: 1;
         }
         .carousel-btn {
+          opacity: 0;
           pointer-events: auto;
           background: rgba(255, 255, 255, 0.8);
           border: none;
@@ -466,6 +470,9 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
           transition: all 0.2s ease;
         }
+        .product-thumb-wrap:hover .carousel-btn {
+          opacity: 1;
+        }
         .carousel-btn:hover {
           background: #fff;
           color: var(--primary-green);
@@ -479,6 +486,7 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
           display: flex;
           gap: 6px;
           pointer-events: none;
+          z-index: 2;
         }
         .carousel-indicators .dot {
           width: 6px;

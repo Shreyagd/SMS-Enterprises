@@ -157,7 +157,12 @@ export function DataProvider({ children }) {
 
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('sms_products_v3');
-    return saved ? JSON.parse(saved) : DEFAULT_PRODUCTS;
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      // Migrate 'Agri' to 'Agriculture'
+      return parsed.map(p => p.category === 'Agri' ? { ...p, category: 'Agriculture' } : p);
+    }
+    return DEFAULT_PRODUCTS;
   });
 
   const [gallery, setGallery] = useState(() => {
@@ -195,7 +200,10 @@ export function DataProvider({ children }) {
   // Sync with backend API if available
   useEffect(() => {
     fetch('/api/data')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (data.settings) setSettings(data.settings);
         if (data.products) setProducts(data.products);

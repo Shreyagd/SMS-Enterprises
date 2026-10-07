@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload, Archive, ArchiveRestore } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { PRODUCT_CATEGORIES } from '../../data/products';
 
@@ -28,12 +28,26 @@ function compressImage(file, maxSize = 1200, quality = 0.82) {
   });
 }
 
+// Resolves true if the URL loads as an image in the browser
+function canLoadImage(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
+}
+
 export default function AdminProducts() {
   const { products, saveProduct, deleteProduct, showToast } = useData();
   const [editingProduct, setEditingProduct] = useState(null);
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [brokenImages, setBrokenImages] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sectionsStr, setSectionsStr] = useState('');
+  const [appsStr, setAppsStr] = useState('');
 
   const initialForm = {
     name: '',
@@ -56,15 +70,25 @@ export default function AdminProducts() {
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setFormData(initialForm);
+    setSectionsStr(JSON.stringify([], null, 2));
+    setAppsStr(initialForm.applications.join(', '));
     setIsModalOpen(true);
+  };
+
+  const toggleArchive = (prod) => {
+    saveProduct({ ...prod, archived: !prod.archived });
+    showToast(`Product ${prod.archived ? 'unarchived' : 'archived'} successfully!`, 'success');
   };
 
   const handleOpenEdit = (prod) => {
     setEditingProduct(prod);
     setFormData({
       ...prod,
-      applications: prod.applications || ['Pallet wrapping']
+      applications: prod.applications || ['Pallet wrapping'],
+      sections: prod.sections || []
     });
+    setSectionsStr(JSON.stringify(prod.sections || [], null, 2));
+    setAppsStr((prod.applications || []).join(', '));
     setIsModalOpen(true);
   };
 
@@ -83,9 +107,25 @@ export default function AdminProducts() {
     setFormData(prev => ({ ...prev, images, image: images[0] || '' }));
   };
 
-  const addImageUrl = () => {
+  const addImageUrl = async () => {
     const url = imageUrlInput.trim();
     if (!url) return;
+
+    if (url.toLowerCase().startsWith('c:\\') || url.toLowerCase().startsWith('file://') || url.indexOf(':\\') === 1) {
+      showToast('Local file paths are not allowed. Please use the "Upload images" button instead.', 'error');
+      return;
+    }
+
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/') && !url.startsWith('data:')) {
+      showToast('Image URL must be a valid web link (http/https) or an absolute path (/).', 'error');
+      return;
+    }
+
+    if (!(await canLoadImage(url))) {
+      showToast('That link does not open an image. Use a direct image link (ending in .jpg/.png/.webp) or the "Upload images" button.', 'error');
+      return;
+    }
+
     setImages([...formImages, url]);
     setImageUrlInput('');
   };
@@ -102,7 +142,7 @@ export default function AdminProducts() {
     if (!files.length) return;
     setUploading(true);
     try {
-      const uploaded = await Promise.all(files.map(compressImage));
+      const uploaded = await Promise.all(files.map(f => compressImage(f)));
       setImages([...formImages, ...uploaded]);
     } catch {
       showToast('Could not read one of the images. Please try another file.', 'error');
@@ -116,13 +156,34 @@ export default function AdminProducts() {
       showToast('Please add at least one product image.', 'error');
       return;
     }
+
+    let parsedSections = [];
+    try {
+      parsedSections = JSON.parse(sectionsStr);
+    } catch (err) {
+      showToast('Invalid JSON format in Sections field.', 'error');
+      return;
+    }
+
+    const finalData = {
+      ...formData,
+      applications: appsStr.split(',').map(s => s.trim()).filter(Boolean),
+      sections: parsedSections
+    };
+
     if (editingProduct) {
-      saveProduct({ ...formData, id: editingProduct.id });
+      saveProduct({ ...finalData, id: editingProduct.id });
     } else {
-      saveProduct(formData);
+      saveProduct(finalData);
     }
     setIsModalOpen(false);
   };
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.subtitle && p.subtitle.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   return (
     <div className="admin-products-root">
@@ -132,9 +193,20 @@ export default function AdminProducts() {
           <p>Add, update specifications, or remove packaging film products from the public catalog</p>
         </div>
 
-        <button className="btn btn-primary" onClick={handleOpenAdd}>
-          <Plus size={16} /> Add New Product
-        </button>
+        <div className="toolbar-actions">
+          <div className="search-box">
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="form-input search-input"
+            />
+          </div>
+          <button className="btn btn-primary" onClick={handleOpenAdd}>
+            <Plus size={16} /> Add New Product
+          </button>
+        </div>
       </div>
 
       <div className="products-table-card">
@@ -152,7 +224,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {products.map(p => (
+              {filteredProducts.map(p => (
                 <tr key={p.id}>
                   <td>
                     <div className="prod-cell">
@@ -172,7 +244,9 @@ export default function AdminProducts() {
                     {p.badge && <span className="badge badge-green">{p.badge}</span>}
                   </td>
                   <td>
-                    {p.featured ? (
+                    {p.archived ? (
+                      <span className="badge badge-red" title="Archived">Archived</span>
+                    ) : p.featured ? (
                       <span className="featured-tag">★ Featured</span>
                     ) : (
                       <span className="text-muted">Standard</span>
@@ -186,6 +260,13 @@ export default function AdminProducts() {
                         title="Edit Product"
                       >
                         <Edit2 size={15} />
+                      </button>
+                      <button 
+                        className="btn-action archive"
+                        onClick={() => toggleArchive(p)}
+                        title={p.archived ? "Unarchive Product" : "Archive Product"}
+                      >
+                        {p.archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
                       </button>
                       <button 
                         className="btn-action delete"
@@ -299,6 +380,29 @@ export default function AdminProducts() {
                 </div>
               </div>
 
+              <div className="form-group">
+                <label className="form-label">Applications (Comma separated)</label>
+                <input 
+                  type="text" 
+                  value={appsStr} 
+                  onChange={(e) => setAppsStr(e.target.value)} 
+                  className="form-input" 
+                  placeholder="e.g. Pallet wrapping, Logistics transit"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Sections / Product Page Content (Advanced JSON)</label>
+                <p className="img-help">Define the rich content of the product page (title, text, list, table). Must be valid JSON.</p>
+                <textarea 
+                  rows="10" 
+                  value={sectionsStr} 
+                  onChange={(e) => setSectionsStr(e.target.value)} 
+                  className="form-textarea" 
+                  style={{fontFamily: 'monospace', fontSize: '0.85rem'}}
+                />
+              </div>
+
               <div className="form-row-2">
                 <div className="form-group">
                   <label className="form-label">Badge Label</label>
@@ -318,8 +422,13 @@ export default function AdminProducts() {
                 <p className="img-help">The first image is the main image shown on product cards. Click ★ to make an image the main one.</p>
                 <div className="img-grid">
                   {formImages.map((src, i) => (
-                    <div key={i} className={`img-tile ${i === 0 ? 'img-main' : ''}`}>
-                      <img src={src} alt={`Product ${i + 1}`} />
+                    <div key={i} className={`img-tile ${i === 0 ? 'img-main' : ''} ${brokenImages[src] ? 'img-broken' : ''}`}>
+                      <img
+                        src={src}
+                        alt={`Product ${i + 1}`}
+                        onError={() => setBrokenImages(prev => ({ ...prev, [src]: true }))}
+                      />
+                      {brokenImages[src] && <span className="img-broken-tag">Broken – remove</span>}
                       {i === 0 ? (
                         <span className="img-main-tag">Main</span>
                       ) : (
@@ -457,11 +566,52 @@ export default function AdminProducts() {
           cursor: pointer;
         }
         .btn-action.edit:hover { background: #eff6ff; color: #2563eb; }
+        .btn-action.archive:hover { background: #fef9c3; color: #eab308; }
         .btn-action.delete:hover { background: #fef2f2; color: #dc2626; }
+        .badge-red {
+          background-color: #fee2e2;
+          color: #ef4444;
+          padding: 4px 8px;
+          border-radius: var(--radius-sm);
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
 
+        .toolbar-actions {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+        }
+        .search-input {
+          min-width: 250px;
+        }
         .product-form-modal {
           max-width: 700px;
           padding: 28px;
+        }
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+        .modal-close-btn {
+          background: none;
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-sm);
+          cursor: pointer;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px;
+          transition: all 0.2s;
+        }
+        .modal-close-btn:hover {
+          color: #ef4444;
+          border-color: #ef4444;
+          background: #fef2f2;
         }
         .form-row-3 {
           display: grid;
@@ -538,6 +688,20 @@ export default function AdminProducts() {
           width: 100%;
           height: 100%;
           object-fit: cover;
+        }
+        .img-tile.img-broken {
+          border-color: #dc2626;
+        }
+        .img-tile.img-broken img {
+          visibility: hidden;
+        }
+        .img-broken-tag {
+          position: absolute;
+          inset: auto 6px 30px 6px;
+          text-align: center;
+          color: #dc2626;
+          font-size: 0.72rem;
+          font-weight: 700;
         }
         .img-main-tag {
           position: absolute;

@@ -19,7 +19,8 @@ import { useData } from '../../context/DataContext';
 export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProduct }) {
   const { settings, products } = useData();
 
-  const featuredProducts = (products.some(p => p.featured) ? products.filter(p => p.featured) : products).slice(0, 6);
+  const activeProducts = products.filter(p => !p.archived);
+  const featuredProducts = (activeProducts.some(p => p.featured) ? activeProducts.filter(p => p.featured) : activeProducts).slice(0, 6);
 
   const valueBadges = [
     {
@@ -63,7 +64,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
         {/* Background video covering the whole banner */}
         <video
           className="hero-bg-video"
-          src="/videos/hero.mp4"
+          src="/videos/hero-3.mp4"
           poster="/images/hero_pallet.jpg"
           autoPlay
           muted
