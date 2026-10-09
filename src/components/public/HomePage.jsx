@@ -63,25 +63,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                             {hero.subtext}
             </p>
 
-            <div className="hero-btn-group">
-              <button 
-                className="btn btn-primary btn-lg hero-cta"
-                onClick={() => {
-                  setActivePage('products');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-              >
-                                <span>{hero.primaryButton}</span>
-                <ArrowRight size={18} />
-              </button>
-
-              <button 
-                className="btn btn-white btn-lg"
-                                onClick={() => onOpenQuoteModal()}
-              >
-                {hero.secondaryButton}
-              </button>
-            </div>
+            {/* hero-btn-group removed */}
           </div>
 
         </div>
@@ -383,7 +365,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
           to { opacity: 1; transform: translateY(0); }
         }
         .hero-headline {
-          font-size: 3.4rem;
+          font-size: 4.2rem;
           font-weight: 800;
           line-height: 1.08;
           letter-spacing: -1px;
@@ -775,7 +757,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
             background: rgba(7, 18, 33, 0.72);
           }
           .hero-headline {
-            font-size: 2.5rem;
+            font-size: 3.0rem;
           }
           .hero-subtext {
             margin-left: auto;
@@ -813,7 +795,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
             min-height: 70vh;
           }
           .hero-headline {
-            font-size: 1.85rem;
+            font-size: 2.25rem;
             line-height: 1.22;
           }
           .hero-subtext {
