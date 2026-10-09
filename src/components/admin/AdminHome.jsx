@@ -59,8 +59,12 @@ export default function AdminHome() {
         <ListEditor
           items={draft.features.items}
           onChange={v => set('features', 'items', v)}
-          fields={[{ key: 'title', label: 'Title' }, { key: 'desc', label: 'Short description' }]}
-          newItem={{ title: 'New feature', desc: '' }}
+          fields={[
+            { key: 'title', label: 'Title' }, 
+            { key: 'desc', label: 'Short description' }, 
+            { key: 'iconUrl', label: 'Icon (Optional SVG/Image)', image: true }
+          ]}
+          newItem={{ title: 'New feature', desc: '', iconUrl: '' }}
           addLabel="Add feature"
           itemLabel="Feature"
         />

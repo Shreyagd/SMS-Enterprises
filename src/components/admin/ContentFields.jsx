@@ -80,7 +80,7 @@ export function ImageField({ label, value, onChange, accept = 'both' }) {
                     {value ? <Media key={value} src={value} /> : <span>{accept === 'video' ? 'No video' : 'No image'}</span>}
         </div>
         <div className="hc-image-actions">
-                    <div className="hc-upload-btns">
+          <div className="hc-upload-btns">
             {accept !== 'video' && (
               <label className={`btn btn-secondary btn-sm ${busy ? 'hc-busy' : ''}`}>
                 <Upload size={14} /> {busy ? 'Uploading…' : 'Upload image'}
@@ -92,6 +92,16 @@ export function ImageField({ label, value, onChange, accept = 'both' }) {
                 <Video size={14} /> {busy ? 'Uploading…' : 'Upload video'}
                 <input type="file" accept="video/*" hidden onChange={uploadVid} disabled={busy} />
               </label>
+            )}
+            {value && (
+              <button 
+                type="button" 
+                className="btn btn-secondary btn-sm text-red" 
+                onClick={() => onChange('')} 
+                title="Remove"
+              >
+                <Trash2 size={14} /> Remove
+              </button>
             )}
           </div>
           <div className="hc-url-row">

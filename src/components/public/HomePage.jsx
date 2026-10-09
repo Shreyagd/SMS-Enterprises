@@ -98,7 +98,11 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
               return (
               <div key={idx} className="feature-item">
                 <div className="feature-icon-box">
-                  <Icon size={26} className="feature-icon" />
+                  {badge.iconUrl ? (
+                    <img src={badge.iconUrl} alt={badge.title} style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                  ) : (
+                    <Icon size={26} className="feature-icon" />
+                  )}
                 </div>
                 <div className="feature-text">
                   <h4 className="feature-title">{badge.title}</h4>
@@ -374,6 +378,10 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
           color: #f8fafc;
           margin-bottom: 24px;
         }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .hero-headline {
           font-size: 3.4rem;
           font-weight: 800;
@@ -381,6 +389,8 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
           letter-spacing: -1px;
           color: #ffffff;
           margin-bottom: 20px;
+          opacity: 0;
+          animation: fadeInUp 0.8s ease-out forwards;
         }
         .hero-highlight {
           color: #22c55e;
