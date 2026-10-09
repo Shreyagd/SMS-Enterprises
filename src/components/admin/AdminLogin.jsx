@@ -4,8 +4,8 @@ import { useData } from '../../context/DataContext';
 
 export default function AdminLogin({ onLoginSuccess, onCancel }) {
   const { loginAdmin } = useData();
-  const [email, setEmail] = useState('admin@smsenterprises.com');
-  const [password, setPassword] = useState('SMSAdmin@2025');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);

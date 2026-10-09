@@ -118,7 +118,53 @@ export default function AdminAbout() {
         {field('missionVision', 'missionText', 'Mission – statement', { multiline: true })}
       </Section>
 
-      <Section title="6. Bottom call-to-action" description="Box at the end of the page with a quote button." {...sectionProps('cta')}>
+      <Section title="6. Certifications" description="List of company certifications and compliances." {...sectionProps('certifications')}>
+        {field('certifications', 'title', 'Section Title')}
+        {field('certifications', 'subtitle', 'Section Subtitle', { multiline: true })}
+        <label className="form-label">Certifications List</label>
+        <ListEditor
+          items={draft.certifications?.items || []}
+          onChange={v => set('certifications', 'items', v)}
+                    fields={[
+            { key: 'name', label: 'Certificate Name' },
+            { key: 'desc', label: 'Description' },
+            { key: 'image', label: 'Image', image: true }
+          ]}
+          newItem={{ name: 'New certificate', desc: '', image: '' }}
+          addLabel="Add certificate"
+          itemLabel="Certificate"
+        />
+      </Section>
+
+      <Section title="7. Customers" description="Customer logos that scroll from right to left." {...sectionProps('customers')}>
+        <div className="hc-grid-2">
+          {field('customers', 'badge', 'Small green label')}
+          {field('customers', 'title', 'Title')}
+        </div>
+        {field('customers', 'subtitle', 'Subtitle', { multiline: true })}
+        <div className="form-group">
+          <label className="form-label">Scroll speed (seconds for one full loop — higher is slower)</label>
+          <input
+            className="form-input"
+            type="number"
+            min={5}
+            max={120}
+            value={draft.customers.speed}
+            onChange={e => set('customers', 'speed', Math.min(120, Math.max(5, Number(e.target.value) || 30)))}
+          />
+        </div>
+        <label className="form-label">Customer logos</label>
+        <ListEditor
+          items={draft.customers.items}
+          onChange={v => set('customers', 'items', v)}
+          fields={[{ key: 'name', label: 'Customer name (shown when hovering the logo)' }, { key: 'logo', label: 'Logo', image: true }]}
+          newItem={{ name: 'New customer', logo: '' }}
+          addLabel="Add customer"
+          itemLabel="Customer"
+        />
+      </Section>
+
+      <Section title="8. Bottom call-to-action" description="Box at the end of the page with a quote button." {...sectionProps('cta')}>
         {field('cta', 'title', 'Title')}
         {field('cta', 'text', 'Text', { multiline: true })}
         {field('cta', 'button', 'Button text (opens quote form)')}

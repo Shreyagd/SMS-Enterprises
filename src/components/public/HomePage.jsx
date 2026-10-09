@@ -51,9 +51,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
 
         <div className="container hero-container">
           <div className="hero-content">
-            <div className="hero-brand-pill">
-              <span>{hero.pill}</span>
-            </div>
+            {/* hero-brand-pill removed */}
 
             <h1 className="hero-headline">
                             {hero.line1}{hero.line1 && <br />}

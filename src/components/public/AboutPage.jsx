@@ -21,7 +21,12 @@ import RichText from '../common/RichText';
 export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
     const { aboutContent } = useData();
 
-  const { header, story, stats, pillars, missionVision, cta } = aboutContent;
+  const { header, story, stats, pillars, missionVision, certifications, customers, cta } = aboutContent;
+  // Repeat the logos so one copy is wider than the screen, then render it twice for a seamless loop
+  const customerLogos = (customers?.items || []).filter(c => c.logo);
+  const customerLoop = customerLogos.length
+    ? Array.from({ length: Math.max(1, Math.ceil(10 / customerLogos.length)) }, () => customerLogos).flat()
+    : [];
   const statIcons = [Award, Users, Factory, ShieldCheck];
   const pillarIcons = [Target, Handshake, ShieldCheck, Truck];
   const shown = (section) => section.visible !== false;
@@ -194,6 +199,51 @@ export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
       </section>
       )}
 
+      {/* Certifications Section */}
+      {certifications && shown(certifications) && (
+      <section className="section certifications-section">
+        <div className="container">
+          <div className="section-title-wrap">
+            <h2 className="section-title">{certifications.title}</h2>
+            <p className="section-subtitle">
+              {certifications.subtitle}
+            </p>
+          </div>
+          <div className="cert-grid">
+            {certifications.items?.map((cert, i) => (
+              <div key={i} className="cert-card">
+                <img src={cert.image} alt={cert.name} className="cert-img" />
+                <h4 className="cert-name">{cert.name}</h4>
+                <p className="cert-desc">{cert.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      )}
+
+            {/* Customers – logos running right to left */}
+      {customers && shown(customers) && customerLoop.length > 0 && (
+      <section className="section customers-section">
+        <div className="container">
+          <div className="section-title-wrap">
+            {customers.badge && <div className="customers-badge-row"><span className="badge badge-green">{customers.badge}</span></div>}
+            <h2 className="section-title">{customers.title}</h2>
+            {customers.subtitle && <p className="section-subtitle">{customers.subtitle}</p>}
+          </div>
+        </div>
+        <div className="customers-marquee" style={{ '--marquee-duration': `${customers.speed || 30}s` }}>
+          <div className="customers-track">
+            {[...customerLoop, ...customerLoop].map((c, i) => (
+              <div key={i} className="customer-logo" title={c.name} aria-hidden={i >= customerLoop.length}>
+                <Media src={c.logo} alt={c.name} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      )}
+
       {/* Contact Trigger CTA */}
             {shown(cta) && (
       <section className="about-cta-section">
@@ -216,6 +266,43 @@ export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
       )}
 
       <style>{`
+        .certifications-section {
+          background-color: #f8fafc;
+          border-top: 1px solid var(--border-light);
+        }
+        .cert-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 30px;
+          margin-top: 40px;
+        }
+        .cert-card {
+          background: #fff;
+          border: 1px solid var(--border-light);
+          padding: 24px;
+          border-radius: var(--radius-md);
+          text-align: center;
+          box-shadow: var(--shadow-sm);
+          transition: transform 0.2s ease;
+        }
+        .cert-card:hover {
+          transform: translateY(-4px);
+        }
+        .cert-img {
+          height: 80px;
+          object-fit: contain;
+          margin-bottom: 20px;
+        }
+        .cert-name {
+          font-family: var(--font-heading);
+          font-size: 1.1rem;
+          color: #0f172a;
+          margin-bottom: 8px;
+        }
+        .cert-desc {
+          font-size: 0.9rem;
+          color: #64748b;
+        }
         .about-header-section {
           background-color: #f8fafc;
           padding: 50px 0 20px;
@@ -532,6 +619,78 @@ export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
           }
           .about-cta-inner .btn {
             width: 100%;
+          }
+        }
+        /* Customers marquee */
+        .customers-badge-row {
+          margin-bottom: 12px;
+        }
+        .customers-section {
+          background: #ffffff;
+          overflow: hidden;
+        }
+        .customers-marquee {
+          overflow: hidden;
+          -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        }
+        .customers-track {
+          display: flex;
+          width: max-content;
+          animation: customers-scroll var(--marquee-duration, 30s) linear infinite;
+        }
+        .customers-marquee:hover .customers-track {
+          animation-play-state: paused;
+        }
+        .customer-logo {
+          flex-shrink: 0;
+          width: 200px;
+          height: 90px;
+          margin-right: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #ffffff;
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-md);
+          padding: 12px 18px;
+          filter: grayscale(0.35);
+          opacity: 0.9;
+          transition: var(--transition);
+        }
+        .customer-logo:hover {
+          filter: none;
+          opacity: 1;
+          border-color: rgba(22, 163, 74, 0.4);
+          box-shadow: var(--shadow-md);
+        }
+        .customer-logo img,
+        .customer-logo video {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+        }
+        @keyframes customers-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .customers-track {
+            animation: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: auto;
+            row-gap: 16px;
+          }
+          .customer-logo[aria-hidden="true"] {
+            display: none;
+          }
+        }
+        @media (max-width: 640px) {
+          .customer-logo {
+            width: 150px;
+            height: 70px;
+            margin-right: 16px;
           }
         }
       `}</style>

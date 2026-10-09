@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
     LayoutDashboard, 
     Home, 
-  Info,   
+  Info, 
+  Briefcase,   
   FileText, 
   Mail, 
   Layers, 
@@ -21,15 +22,17 @@ import AdminMessages from './AdminMessages';
 import AdminProducts from './AdminProducts';
 import AdminHome from './AdminHome';
 import AdminAbout from './AdminAbout';
+import AdminCareers from './AdminCareers';
 import AdminSettings from './AdminSettings';
 
 export default function AdminLayout({ onExitAdmin }) {
-  const { adminUser, logoutAdmin, quotes, messages, settings } = useData();
+  const { adminUser, logoutAdmin, quotes, messages, settings, applications } = useData();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const newQuotes = quotes.filter(q => q.status === 'New').length;
   const unreadMessages = messages.filter(m => m.status === 'Unread').length;
+  const newApplications = applications.filter(a => a.status === 'New').length;
 
   const navTabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
@@ -37,6 +40,7 @@ export default function AdminLayout({ onExitAdmin }) {
     { id: 'messages', label: 'Inquiries Inbox', icon: <Mail size={18} />, badge: unreadMessages },
     { id: 'home', label: 'Home Page', icon: <Home size={18} /> },
     { id: 'about', label: 'About Us Page', icon: <Info size={18} /> },
+    { id: 'careers', label: 'Careers', icon: <Briefcase size={18} />, badge: newApplications },
     { id: 'products', label: 'Products Catalog', icon: <Layers size={18} /> },
     { id: 'settings', label: 'Settings & Security', icon: <Settings size={18} /> }
   ];
@@ -154,6 +158,7 @@ export default function AdminLayout({ onExitAdmin }) {
           {activeTab === 'messages' && <AdminMessages />}
           {activeTab === 'home' && <AdminHome />}
           {activeTab === 'about' && <AdminAbout />}
+          {activeTab === 'careers' && <AdminCareers />}
           {activeTab === 'products' && <AdminProducts />}
           {activeTab === 'settings' && <AdminSettings />}
         </main>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+  <rect width="240" height="80" rx="12" fill="#ede9fe"/>
+  <path d="M18 40 Q40 10 62 40 Q40 70 18 40Z" fill="#7c3aed"/>
+  <text x="76" y="38" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#7c3aed">CLIENT 4</text>
+  <text x="76" y="56" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#64748b" letter-spacing="1">SAMPLE LOGO</text>
+</svg>

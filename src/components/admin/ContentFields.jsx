@@ -154,10 +154,12 @@ export function Section({ title, description, visible, onToggle, children }) {
           <h3>{title}</h3>
           <p>{description}</p>
         </div>
-        <label className="hc-toggle">
-          <input type="checkbox" checked={visible} onChange={e => onToggle(e.target.checked)} />
-          <span>{visible ? 'Shown on home page' : 'Hidden'}</span>
-        </label>
+        {onToggle && (
+          <label className="hc-toggle">
+            <input type="checkbox" checked={visible} onChange={e => onToggle(e.target.checked)} />
+            <span>{visible ? 'Shown on page' : 'Hidden'}</span>
+          </label>
+        )}
       </div>
       {visible && <div className="hc-section-body">{children}</div>}
     </section>

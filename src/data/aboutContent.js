@@ -63,6 +63,25 @@ export const DEFAULT_ABOUT_CONTENT = {
     title: 'Ready to Upgrade Your Packaging Strength?',
     text: 'Speak with our technical engineering team for roll samples or factory visits.',
     button: 'REQUEST PRODUCT SAMPLES'
+  },
+  certifications: {
+    visible: true,
+    title: 'OUR CERTIFICATIONS',
+    subtitle: 'Recognized for our commitment to quality, sustainability, and manufacturing excellence.',
+    items: [
+      { name: 'ISO 9001:2015', desc: 'Quality Management System', image: '/images/certifications/iso-9001.svg' },
+      { name: 'ISO 14001:2015', desc: 'Environmental Management', image: '/images/certifications/iso-14001.svg' },
+      { name: 'RoHS Compliant', desc: 'Hazardous Substances Free', image: '/images/certifications/rohs.svg' }
+    ]
+  },
+  // Scrolling customer logos. The logos below are SAMPLES — replace them from Admin → About Us Page.
+  customers: {
+    visible: true,
+    badge: 'TRUSTED BY',
+    title: 'OUR CUSTOMERS',
+    subtitle: 'Brands and manufacturers across India rely on SMS ENTERPRISES for their packaging.',
+    speed: 30,
+    items: Array.from({ length: 8 }, (_, i) => ({ name: `Client ${i + 1}`, logo: `/images/customers/customer-${i + 1}.svg` }))
   }
 };
 

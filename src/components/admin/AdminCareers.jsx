@@ -141,7 +141,7 @@ function PageEditor() {
         {field('openings', 'emptyText', 'Message when there are no openings', { multiline: true })}
       </Section>
 
-      <Section title="Page heading" description="Dark banner at the top of the Careers page." visible onToggle={() => {}}>
+      <Section title="Page heading" description="Dark banner at the top of the Careers page." visible>
         {field('hero', 'title', 'Title')}
         {field('hero', 'subtitle', 'Subtitle', { multiline: true })}
       </Section>
@@ -162,7 +162,7 @@ function PageEditor() {
         />
       </Section>
 
-      <Section title="Application form" description="Text next to the application form." visible onToggle={() => {}}>
+      <Section title="Application form" description="Text next to the application form." visible>
         <div className="hc-grid-2">
           {field('apply', 'badge', 'Small green label')}
           {field('apply', 'title', 'Title')}

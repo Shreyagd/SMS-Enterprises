@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+  <rect width="240" height="80" rx="12" fill="#fef3c7"/>
+  <polygon points="40,16 64,62 16,62" fill="#b45309"/>
+  <text x="76" y="38" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#b45309">CLIENT 3</text>
+  <text x="76" y="56" font-family="Segoe UI, Arial, sans-serif" font-size="11" fill="#64748b" letter-spacing="1">SAMPLE LOGO</text>
+</svg>

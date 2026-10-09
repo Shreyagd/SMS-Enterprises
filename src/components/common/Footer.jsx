@@ -51,7 +51,7 @@ export default function Footer({ setActivePage, onOpenAdmin, onSelectProduct }) 
               </li>
               <li>
                 <button onClick={() => { setActivePage('about'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> About Us (~GD Kishore)
+                  <ChevronRight size={14} /> About Us
                 </button>
               </li>
                             <li>
@@ -64,11 +64,7 @@ export default function Footer({ setActivePage, onOpenAdmin, onSelectProduct }) 
                   <ChevronRight size={14} /> Contact Us
                 </button>
               </li>
-              <li>
-                <button onClick={() => { onOpenAdmin && onOpenAdmin(); window.scrollTo({ top: 0, behavior: 'smooth'}); }} className="admin-portal-nav-btn">
-                  <Lock size={13} style={{ color: '#22c55e' }} /> Staff / Admin Portal
-                </button>
-              </li>
+              {/* Admin portal link removed */}
             </ul>
           </div>
 

@@ -52,7 +52,7 @@ export default function AdminHome() {
           {field('hero', 'secondaryButton', 'White button text (opens quote form)')}
         </div>
                 <ImageField label="Background video" accept="video" value={draft.hero.video} onChange={v => set('hero', 'video', v)} />
-        <ImageField label="Image shown while the video loads" accept="image" value={draft.hero.poster} onChange={v => set('hero', 'poster', v)} />
+        <ImageField label="Image shown while the video loads" accept="both" value={draft.hero.poster} onChange={v => set('hero', 'poster', v)} />
       </Section>
 
       <Section title="2. Feature strip" description="The row of short highlights under the banner." {...sectionProps('features')}>

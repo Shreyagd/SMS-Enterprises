@@ -249,40 +249,7 @@ export default function ContactPage({ setActivePage }) {
             </div>
           </div>
 
-          {/* Location Map View */}
-          <div className="map-view-card">
-            <div className="map-card-header">
-              <div className="map-title-info">
-                <MapPin size={20} className="text-green" />
-                <div>
-                  <strong>SMS Enterprises Factory & Dispatch Location</strong>
-                  <p>Lakshmipura Main Road, Chamundeshwari Layout, Bengaluru, Karnataka - 562162</p>
-                </div>
-              </div>
-              <a 
-                href={`https://maps.google.com/?q=Lakshmipura+Main+Road+Bengaluru+562162`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="btn btn-secondary btn-sm"
-              >
-                <span>OPEN IN GOOGLE MAPS</span>
-                <ExternalLink size={14} />
-              </a>
-            </div>
-
-            <div className="interactive-map-frame">
-              <iframe
-                title="SMS Enterprises Bengaluru Location"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3886.5878235282713!2d77.5146522!3d13.0619198!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae2300b9576435%3A0x6d9f8c62c4740e5!2sLakshmipura%20Main%20Rd%2C%20Bengaluru%2C%20Karnataka%20562162!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-                width="100%"
-                height="340"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-          </div>
+          {/* Location Map View removed */}
         </div>
             </section>
 
