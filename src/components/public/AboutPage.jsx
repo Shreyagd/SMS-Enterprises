@@ -11,121 +11,85 @@ import {
   Truck, 
   Cpu, 
   Handshake, 
-  Sparkles,
+  
   ArrowRight
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import Media from '../common/Media';
+import RichText from '../common/RichText';
 
 export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
-  const { settings } = useData();
+    const { aboutContent } = useData();
 
-  const stats = [
-    { number: settings.experienceYears, label: 'Years of Experience', icon: <Award size={28} className="text-green" /> },
-    { number: settings.happyCustomers, label: 'Happy Customers', icon: <Users size={28} className="text-green" /> },
-    { number: settings.teamMembers, label: 'Team Members', icon: <Factory size={28} className="text-green" /> },
-    { number: '100%', label: 'Quality Assurance', icon: <ShieldCheck size={28} className="text-green" /> }
-  ];
-
-  const pillars = [
-    {
-      title: '360° COMMITMENT',
-      desc: 'End-to-end responsibility from virgin polymer resin sourcing to precision extrusion, spooling, and dispatch.',
-      icon: <Target size={24} className="text-gold" />
-    },
-    {
-      title: 'PARTNERING BEYOND PRODUCTS',
-      desc: 'We assist clients in optimizing wrap tension, reducing plastic gauge consumption, and cutting shipping damages.',
-      icon: <Handshake size={24} className="text-gold" />
-    },
-    {
-      title: 'CERTIFIED QUALITY',
-      desc: 'Standardized testing for elongation, tensile strength, dart impact resistance, and puncture barrier.',
-      icon: <ShieldCheck size={24} className="text-gold" />
-    },
-    {
-      title: 'SMART LOGISTICS',
-      desc: 'Fast regional dispatches across South India & streamlined container packaging for global export markets.',
-      icon: <Truck size={24} className="text-gold" />
-    }
-  ];
+  const { header, story, stats, pillars, missionVision, cta } = aboutContent;
+  const statIcons = [Award, Users, Factory, ShieldCheck];
+  const pillarIcons = [Target, Handshake, ShieldCheck, Truck];
+  const shown = (section) => section.visible !== false;
 
   return (
     <div className="about-page-root">
       {/* Header */}
+            {shown(header) && (
       <section className="about-header-section">
         <div className="container">
           <div className="section-title-wrap">
-            <h1 className="section-title">ABOUT US</h1>
+                        <h1 className="section-title">{header.title}</h1>
             <p className="section-subtitle">
-              Delivering Quality, Building Trust — Revolutionizing Package & Defining the Brand SWASTIK
+              {header.subtitle}
             </p>
           </div>
         </div>
       </section>
+      )}
 
       {/* Main Story: Founder & Factory (Matching reference mockup layout) */}
+            {shown(story) && (
       <section className="section about-main-section">
         <div className="container">
           <div className="about-story-grid">
             {/* Left Content */}
             <div className="about-text-col">
-              <span className="badge badge-green">LEADERSHIP & VISION</span>
-              <h2 className="about-story-title">ENGINEERING PACKAGING EXCELLENCE</h2>
+                            {/* story.badge removed */}
+              <h2 className="about-story-title">{story.title}</h2>
 
               <p className="about-paragraph">
-                <strong>{settings.companyName}</strong> is a leading manufacturer and supplier of high-performance industrial stretch films, LDPE heavy shrink films, and BOPP multi-layer barrier solutions. We are committed to providing innovative packaging solutions that ensure product safety, reduce material waste, and improve operational efficiency.
+                                <RichText text={story.paragraph} />
               </p>
 
               <blockquote className="founder-quote-card">
                 <p>
-                  "Me as an Entrepreneur with a strong passion for Innovation and Manufacturing, I am committed to build a globally recognized Business in the Polymer and Flexible Packaging Industry. Our journey is driven by a Vision to develop high-performance, Sustainable, & value-driven polymer solutions that meet the evolving needs of industries worldwide."
+                                    "{story.quote}"
                 </p>
                 <div className="founder-signature">
-                  <strong>{settings.founder}</strong>
-                  <span>Founder & Managing Entrepreneur</span>
+                                    <strong>{story.founderName}</strong>
+                  <span>{story.founderRole}</span>
                 </div>
               </blockquote>
 
               <p className="about-paragraph-sub">
-                We believe that Indian manufacturing has the potential to compete with the best in the world. Our mission is to become a trusted global exporter of polymer packaging solutions, proudly representing the quality, precision, and manufacturing capabilities of <strong>Made in India</strong>.
+                                <RichText text={story.paragraph2} />
               </p>
 
               {/* 4 Checkmark Bullets (Matching mockup) */}
               <div className="about-checkmarks-grid">
-                <div className="about-check-item">
-                  <CheckCircle size={20} className="text-green" />
-                  <span>Advanced Manufacturing Technology</span>
-                </div>
-                <div className="about-check-item">
-                  <CheckCircle size={20} className="text-green" />
-                  <span>Strict Quality Control & Testing</span>
-                </div>
-                <div className="about-check-item">
-                  <CheckCircle size={20} className="text-green" />
-                  <span>Customer Focused Approach</span>
-                </div>
-                <div className="about-check-item">
-                  <CheckCircle size={20} className="text-green" />
-                  <span>Sustainable & Recyclable Solutions</span>
-                </div>
+                {story.checks.map((c, i) => (
+                  <div key={i} className="about-check-item">
+                    <CheckCircle size={20} className="text-green" />
+                    <span>{c.text}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Right Media */}
             <div className="about-media-col">
               <div className="factory-image-card">
-                <img 
-                  src="/images/factory_building.jpg" 
-                  alt="SMS Enterprises Manufacturing Facility Bengaluru" 
+                <Media 
+                                    src={story.image}
+                  alt={story.imageBadgeTitle || story.title} 
                   className="factory-img" 
                 />
-                <div className="factory-badge-floating">
-                  <Factory size={16} className="text-green" />
-                  <div>
-                    <strong>Production Unit</strong>
-                    <span>Chamundeshwari Layout, Bengaluru</span>
-                  </div>
-                </div>
+                {/* factory-badge-floating removed */}
               </div>
 
               <div className="experience-highlight-card">
@@ -133,56 +97,68 @@ export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
                   <Globe size={28} className="text-green" />
                 </div>
                 <div>
-                  <h4>Global Exporter Standards</h4>
-                  <p>Equipped with 600 m/min Rotogravure and multi-layer blown film extrusion plants.</p>
+                                    <h4>{story.highlightTitle}</h4>
+                  <p>{story.highlightText}</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+      )}
 
       {/* 4 Stat Boxes (Matching reference mockup layout) */}
+            {shown(stats) && (
       <section className="section-alt about-stats-section">
         <div className="container">
           <div className="about-stats-grid">
-            {stats.map((st, i) => (
+                        {stats.items.map((st, i) => {
+              const Icon = statIcons[i % statIcons.length];
+              return (
               <div key={i} className="about-stat-card">
-                <div className="about-stat-icon">{st.icon}</div>
+                <div className="about-stat-icon"><Icon size={28} className="text-green" /></div>
                 <div className="about-stat-num">{st.number}</div>
-                <div className="about-stat-txt">{st.label}</div>
+                                <div className="about-stat-txt">{st.label}</div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       {/* 4 Strategic Pillars (From PDF Page 3) */}
+            {shown(pillars) && (
       <section className="section pillars-section">
         <div className="container">
           <div className="section-title-wrap">
-            <span className="badge badge-green">OUR CORE PILLARS</span>
-            <h2 className="section-title">THE SWASTIK ADVANTAGE</h2>
+                        {/* pillars.badge removed */}
+            <h2 className="section-title">{pillars.title}</h2>
             <p className="section-subtitle">
-              How we partner with logistics companies, FMCG brands, and agricultural producers across India.
+              {pillars.subtitle}
             </p>
           </div>
 
           <div className="pillars-grid">
-            {pillars.map((p, idx) => (
+                        {pillars.items.map((p, idx) => {
+              const Icon = pillarIcons[idx % pillarIcons.length];
+              return (
               <div key={idx} className="card pillar-card">
                 <div className="pillar-header">
-                  <div className="pillar-icon-box">{p.icon}</div>
+                  <div className="pillar-icon-box"><Icon size={24} className="text-gold" /></div>
                   <h3 className="pillar-title">{p.title}</h3>
                 </div>
-                <p className="pillar-desc">{p.desc}</p>
+                                <p className="pillar-desc">{p.desc}</p>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       {/* Mission & Vision Dark Callout Banner (Matching reference mockup) */}
+            {shown(missionVision) && (
       <section className="section section-dark mission-vision-section">
         <div className="container">
           <div className="mission-vision-grid">
@@ -192,10 +168,10 @@ export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
                 <Compass size={32} className="text-green" />
               </div>
               <div className="mission-content">
-                <span className="badge badge-gold">OUR VISION</span>
-                <h3>Global Packaging Leader</h3>
+                                {/* missionVision.visionBadge removed */}
+                <h3>{missionVision.visionTitle}</h3>
                 <p>
-                  "To be a globally respected manufacturer and exporter of polymer and flexible packaging solutions through continuous innovation, certified quality, and sustainable business practices."
+                  "{missionVision.visionText}"
                 </p>
               </div>
             </div>
@@ -206,35 +182,38 @@ export default function AboutPage({ setActivePage, onOpenQuoteModal }) {
                 <Target size={32} className="text-green" />
               </div>
               <div className="mission-content">
-                <span className="badge badge-green">OUR MISSION</span>
-                <h3>World-Class Customer Value</h3>
+                                {/* missionVision.missionBadge removed */}
+                <h3>{missionVision.missionTitle}</h3>
                 <p>
-                  "To deliver world-class polymer products that exceed customer expectations, embrace continuous technological advancement, and build enduring relationships with partners across Indian and International markets."
+                  "{missionVision.missionText}"
                 </p>
               </div>
             </div>
           </div>
         </div>
       </section>
+      )}
 
       {/* Contact Trigger CTA */}
+            {shown(cta) && (
       <section className="about-cta-section">
         <div className="container">
           <div className="about-cta-inner">
             <div>
-              <h3>Ready to Upgrade Your Packaging Strength?</h3>
-              <p>Speak with our technical engineering team for roll samples or factory visits.</p>
+                            <h3>{cta.title}</h3>
+              <p>{cta.text}</p>
             </div>
             <button 
               className="btn btn-primary btn-lg"
               onClick={() => onOpenQuoteModal()}
             >
-              <span>REQUEST PRODUCT SAMPLES</span>
+                            <span>{cta.button}</span>
               <ArrowRight size={18} />
             </button>
           </div>
         </div>
       </section>
+      )}
 
       <style>{`
         .about-header-section {

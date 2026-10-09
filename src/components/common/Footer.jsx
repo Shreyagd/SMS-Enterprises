@@ -50,13 +50,13 @@ export default function Footer({ setActivePage, onOpenAdmin, onSelectProduct }) 
                 </button>
               </li>
               <li>
-                <button onClick={() => { setActivePage('gallery'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Infrastructure & Gallery
-                </button>
-              </li>
-              <li>
                 <button onClick={() => { setActivePage('about'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
                   <ChevronRight size={14} /> About Us (~GD Kishore)
+                </button>
+              </li>
+                            <li>
+                <button onClick={() => { setActivePage('careers'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
+                  <ChevronRight size={14} /> Careers
                 </button>
               </li>
               <li>

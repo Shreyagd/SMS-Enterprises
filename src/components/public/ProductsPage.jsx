@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, CheckCircle, Search, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useData } from '../../context/DataContext';
-import { PRODUCT_CATEGORIES } from '../../data/products';
+import Media from '../common/Media';
+import { PRODUCT_CATEGORIES, CATEGORY_BLURBS, categorySlug as toSlug } from '../../data/products';
 
 const ProductCard = ({ product, onSelectProduct, onOpenQuoteModal }) => {
   const [imgIndex, setImgIndex] = useState(0);
@@ -30,7 +31,7 @@ const ProductCard = ({ product, onSelectProduct, onOpenQuoteModal }) => {
       onKeyDown={(e) => e.key === 'Enter' && onSelectProduct(product)}
     >
       <div className="product-thumb-wrap">
-        <img 
+        <Media 
           src={images[imgIndex] || images[0]}
           onError={() => {
             const src = images[imgIndex] || images[0];
@@ -88,13 +89,20 @@ const ProductCard = ({ product, onSelectProduct, onOpenQuoteModal }) => {
   );
 };
 
-export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelectProduct }) {
+export default function ProductsPage({ categorySlug, onSelectCategory, setActivePage, onOpenQuoteModal, onSelectProduct }) {
   const { products } = useData();
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
   const activeProducts = products.filter(p => !p.archived);
-  const categories = ['All', ...new Set([...PRODUCT_CATEGORIES, ...activeProducts.map(p => p.category)])];
+  const categoryNames = [...new Set([...PRODUCT_CATEGORIES, ...activeProducts.map(p => p.category)])];
+  const categories = ['All', ...categoryNames];
+  // The selected category lives in the URL (/products?category=fmcg) so menu links and shared links open it
+  const selectedCategory = categoryNames.find(c => toSlug(c) === categorySlug) || 'All';
+  const setSelectedCategory = (cat) => onSelectCategory(cat === 'All' ? null : toSlug(cat));
+
+  useEffect(() => {
+    if (categorySlug) document.getElementById('products-list')?.scrollIntoView({ behavior: 'smooth' });
+  }, [categorySlug]);
   const countFor = (cat) => cat === 'All' ? activeProducts.length : activeProducts.filter(p => p.category === cat).length;
 
   const term = searchTerm.toLowerCase();
@@ -130,14 +138,14 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
                   {categories.map((cat) => {
                     const isActive = selectedCategory === cat;
                     return (
-                      <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        className={`sidebar-cat-btn ${isActive ? 'cat-btn-active' : ''}`}
-                      >
-                                                <span>{cat === 'All' ? 'All Products' : cat}</span>
-                        <span className="cat-count">{countFor(cat)}</span>
-                      </button>
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(cat)}
+                          className={`sidebar-cat-btn ${isActive ? 'cat-btn-active' : ''}`}
+                        >
+                          <span>{(cat === 'All' ? 'All Products' : cat).toUpperCase()}</span>
+                          <span className="cat-count">{countFor(cat)}</span>
+                        </button>
                     );
                   })}
                 </div>
@@ -173,7 +181,7 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
             </aside>
 
             {/* Right Product Grid */}
-            <main className="products-main-content">
+                        <main className="products-main-content" id="products-list">
               {/* Search and results count */}
               <div className="products-toolbar">
                 <div className="results-count">
@@ -206,16 +214,30 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
                   </button>
                 </div>
               ) : (
-                <div className="products-cards-grid">
-                  {filteredProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      onSelectProduct={onSelectProduct} 
-                      onOpenQuoteModal={onOpenQuoteModal} 
-                    />
-                  ))}
-                </div>
+                                categoryNames
+                  .map(cat => ({ cat, items: filteredProducts.filter(p => p.category === cat) }))
+                  .filter(group => group.items.length)
+                  .map(({ cat, items }) => (
+                    <section key={cat} className="category-section" id={`category-${toSlug(cat)}`}>
+                      <div className="category-section-head">
+                        <div>
+                          <h2 className="category-section-title">{cat}</h2>
+                          {CATEGORY_BLURBS[cat] && <p className="category-section-blurb">{CATEGORY_BLURBS[cat]}</p>}
+                        </div>
+                        <span className="category-section-count">{items.length} {items.length === 1 ? 'product' : 'products'}</span>
+                      </div>
+                      <div className="products-cards-grid">
+                        {items.map((product) => (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            onSelectProduct={onSelectProduct}
+                            onOpenQuoteModal={onOpenQuoteModal}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ))
               )}
             </main>
           </div>
@@ -416,7 +438,67 @@ export default function ProductsPage({ setActivePage, onOpenQuoteModal, onSelect
           box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
         }
 
-        /* Products Grid */
+                /* Products Grid */
+        .products-main-content {
+          scroll-margin-top: 90px;
+        }
+        .category-section + .category-section {
+          margin-top: 56px;
+        }
+        .category-section-head {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 22px;
+          padding-bottom: 14px;
+          border-bottom: 2px solid #edf2f7;
+          position: relative;
+        }
+        .category-section-head::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          bottom: -2px;
+          width: 64px;
+          height: 2px;
+          background: var(--primary-green);
+        }
+        .category-section-title {
+          font-size: 1.6rem;
+          font-weight: 800;
+          color: #0b1a30;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 4px;
+        }
+        .category-section-blurb {
+          font-size: 0.9rem;
+          color: var(--text-muted);
+          max-width: 560px;
+        }
+        .category-section-count {
+          flex-shrink: 0;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: var(--primary-green);
+          background: var(--green-bg);
+          border-radius: var(--radius-full);
+          padding: 4px 12px;
+        }
+        @media (max-width: 580px) {
+          .category-section-head {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          .category-section-title {
+            font-size: 1.3rem;
+          }
+          .category-section + .category-section {
+            margin-top: 40px;
+          }
+        }
         .products-cards-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);

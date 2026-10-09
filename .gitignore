@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Media uploaded through the admin portal (lives on the server)
+server/uploads/

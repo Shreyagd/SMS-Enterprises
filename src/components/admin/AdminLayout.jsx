@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { 
-  LayoutDashboard, 
+    LayoutDashboard, 
+    Home, 
+  Info,   
   FileText, 
   Mail, 
   Layers, 
@@ -17,6 +19,8 @@ import AdminDashboard from './AdminDashboard';
 import AdminQuotes from './AdminQuotes';
 import AdminMessages from './AdminMessages';
 import AdminProducts from './AdminProducts';
+import AdminHome from './AdminHome';
+import AdminAbout from './AdminAbout';
 import AdminSettings from './AdminSettings';
 
 export default function AdminLayout({ onExitAdmin }) {
@@ -31,6 +35,8 @@ export default function AdminLayout({ onExitAdmin }) {
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
     { id: 'quotes', label: 'RFQ Quotes', icon: <FileText size={18} />, badge: newQuotes },
     { id: 'messages', label: 'Inquiries Inbox', icon: <Mail size={18} />, badge: unreadMessages },
+    { id: 'home', label: 'Home Page', icon: <Home size={18} /> },
+    { id: 'about', label: 'About Us Page', icon: <Info size={18} /> },
     { id: 'products', label: 'Products Catalog', icon: <Layers size={18} /> },
     { id: 'settings', label: 'Settings & Security', icon: <Settings size={18} /> }
   ];
@@ -146,6 +152,8 @@ export default function AdminLayout({ onExitAdmin }) {
           {activeTab === 'dashboard' && <AdminDashboard onNavigateTab={setActiveTab} />}
           {activeTab === 'quotes' && <AdminQuotes />}
           {activeTab === 'messages' && <AdminMessages />}
+          {activeTab === 'home' && <AdminHome />}
+          {activeTab === 'about' && <AdminAbout />}
           {activeTab === 'products' && <AdminProducts />}
           {activeTab === 'settings' && <AdminSettings />}
         </main>

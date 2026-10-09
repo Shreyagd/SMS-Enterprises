@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, ArrowRight, Lock, ChevronDown } from 'lucide-react';
 import { useData } from '../../context/DataContext';
-import { PRODUCT_CATEGORIES } from '../../data/products';
+import { PRODUCT_CATEGORIES, categorySlug } from '../../data/products';
 
-export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, onOpenAdmin, onSelectProduct }) {
+export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, onOpenAdmin, onSelectProduct, onSelectCategory }) {
   const { settings, products } = useData();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,9 +22,17 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
   };
 
   // Products grouped under the doc's main headings (FMCG / Industrial / Agri), plus any custom admin categories
-  const productGroups = [...new Set([...PRODUCT_CATEGORIES, ...products.map(p => p.category)])]
-    .map(category => ({ category, items: products.filter(p => p.category === category) }))
+  const activeProducts = products.filter(p => !p.archived);
+  const productGroups = [...new Set([...PRODUCT_CATEGORIES, ...activeProducts.map(p => p.category)])]
+    .map(category => ({ category, items: activeProducts.filter(p => p.category === category) }))
     .filter(g => g.items.length);
+
+    const openCategory = (category) => {
+    clearTimeout(megaCloseTimer.current);
+    setMegaOpen(false);
+    setMobileMenuOpen(false);
+    onSelectCategory(categorySlug(category));
+  };
 
   const openProduct = (product) => {
     clearTimeout(megaCloseTimer.current);
@@ -44,8 +52,8 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
   const navLinks = [
     { id: 'home', label: 'HOME' },
     { id: 'products', label: 'OUR PRODUCTS' },
-    { id: 'gallery', label: 'GALLERY' },
     { id: 'about', label: 'ABOUT US' },
+    { id: 'careers', label: 'CAREERS' },
     { id: 'contact', label: 'CONTACT US' }
   ];
 
@@ -104,7 +112,7 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
                           <div className="mega-columns">
                             {productGroups.map(group => (
                               <div key={group.category} className="mega-col">
-                                <h4 className="mega-heading">{group.category}</h4>
+                                <h4><button className="mega-heading" onClick={() => openCategory(group.category)}>{group.category}</button></h4>
                                 <ul>
                                   {group.items.map(p => (
                                     <li key={p.id}>
@@ -176,7 +184,7 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
                     <div className="mobile-mega">
                       {productGroups.map(group => (
                         <div key={group.category} className="mobile-mega-group">
-                          <h4 className="mega-heading">{group.category}</h4>
+                          <h4><button className="mega-heading" onClick={() => openCategory(group.category)}>{group.category}</button></h4>
                           {group.items.map(p => (
                             <button key={p.id} className="mega-link" onClick={() => openProduct(p)}>{p.name}</button>
                           ))}
@@ -405,7 +413,13 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
           max-width: 1000px;
           margin: 0 auto;
         }
-        .mega-heading {
+                .mega-heading {
+          background: none;
+          border-top: none;
+          border-left: none;
+          border-right: none;
+          cursor: pointer;
+          transition: color 0.15s ease;
           font-family: var(--font-heading);
           font-size: 1rem;
           font-weight: 700;
@@ -416,6 +430,9 @@ export default function Navbar({ activePage, setActivePage, onOpenQuoteModal, on
           margin-bottom: 10px;
           border-bottom: 2px solid var(--primary-green);
           display: inline-block;
+        }
+                .mega-heading:hover {
+          color: var(--primary-green);
         }
         .mega-col ul {
           list-style: none;

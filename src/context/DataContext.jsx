@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { PRODUCTS } from '../data/products';
+import { DEFAULT_HOME_CONTENT, mergeHomeContent } from '../data/homeContent';
+import { DEFAULT_ABOUT_CONTENT, mergeAboutContent } from '../data/aboutContent';
+import { DEFAULT_CAREERS_CONTENT, mergeCareersContent } from '../data/careersContent';
 
 const DataContext = createContext();
 
@@ -165,6 +168,41 @@ export function DataProvider({ children }) {
     return DEFAULT_PRODUCTS;
   });
 
+  const [homeContent, setHomeContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sms_home');
+      return saved ? mergeHomeContent(JSON.parse(saved)) : DEFAULT_HOME_CONTENT;
+    } catch {
+      return DEFAULT_HOME_CONTENT;
+    }
+  });
+
+  const [aboutContent, setAboutContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sms_about');
+      return saved ? mergeAboutContent(JSON.parse(saved)) : DEFAULT_ABOUT_CONTENT;
+    } catch {
+      return DEFAULT_ABOUT_CONTENT;
+    }
+  });
+
+  const [careersContent, setCareersContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sms_careers');
+      return saved ? mergeCareersContent(JSON.parse(saved)) : DEFAULT_CAREERS_CONTENT;
+    } catch {
+      return DEFAULT_CAREERS_CONTENT;
+    }
+  });
+
+  const [applications, setApplications] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sms_applications')) || [];
+    } catch {
+      return [];
+    }
+  });
+
   const [gallery, setGallery] = useState(() => {
     const saved = localStorage.getItem('sms_gallery');
     return saved ? JSON.parse(saved) : DEFAULT_GALLERY;
@@ -206,6 +244,10 @@ export function DataProvider({ children }) {
       })
       .then(data => {
         if (data.settings) setSettings(data.settings);
+        if (data.home) setHomeContent(mergeHomeContent(data.home));
+        if (data.about) setAboutContent(mergeAboutContent(data.about));
+        if (data.careers) setCareersContent(mergeCareersContent(data.careers));
+        if (data.applications) setApplications(data.applications);
         if (data.products) setProducts(data.products);
         if (data.gallery) setGallery(data.gallery);
         if (data.quotes) setQuotes(data.quotes);
@@ -368,6 +410,122 @@ export function DataProvider({ children }) {
     showToast('Product removed from catalog.', 'info');
   };
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_home', JSON.stringify(homeContent));
+    } catch {
+      showToast('Browser storage is full — use smaller images or image links on the home page.', 'error');
+    }
+  }, [homeContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_about', JSON.stringify(aboutContent));
+    } catch {
+      showToast('Browser storage is full — use smaller images or image links on the About Us page.', 'error');
+    }
+  }, [aboutContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_careers', JSON.stringify(careersContent));
+    } catch {
+      showToast('Browser storage is full — could not save the Careers page.', 'error');
+    }
+  }, [careersContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_applications', JSON.stringify(applications));
+    } catch {
+      showToast('Browser storage is full — delete some old job applications.', 'error');
+    }
+  }, [applications]);
+
+  const updateCareersContent = async (content) => {
+    setCareersContent(content);
+    try {
+      await fetch('/api/careers', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      });
+    } catch {
+      // No backend: content stays in this browser
+    }
+    showToast('Careers page updated!', 'success');
+  };
+
+  const submitApplication = async (appData) => {
+    const newApp = {
+      id: 'JOB-' + Math.floor(1000 + Math.random() * 9000),
+      date: new Date().toISOString(),
+      status: 'New',
+      ...appData
+    };
+    setApplications(prev => [newApp, ...prev]);
+    try {
+      await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newApp)
+      });
+    } catch {
+      // No backend: stored in this browser
+    }
+    showToast('Thank you! Your application has been submitted.', 'success');
+    return newApp;
+  };
+
+  const updateApplication = async (id, updates) => {
+    setApplications(prev => prev.map(a => (a.id === id ? { ...a, ...updates } : a)));
+    try {
+      await fetch(`/api/applications/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch {
+      // No backend
+    }
+  };
+
+  const deleteApplication = async (id) => {
+    setApplications(prev => prev.filter(a => a.id !== id));
+    try {
+      await fetch(`/api/applications/${id}`, { method: 'DELETE' });
+    } catch {
+      // No backend
+    }
+    showToast('Application deleted.', 'info');
+  };
+
+  const updateAboutContent = async (content) => {
+    setAboutContent(content);
+    try {
+      await fetch('/api/about', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      });
+    } catch {
+      // No backend (e.g. static hosting): content stays in this browser
+    }
+    showToast('About Us page updated!', 'success');
+  };
+
+  const updateHomeContent = async (content) => {
+    setHomeContent(content);
+    try {
+      await fetch('/api/home', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      });
+    } catch (e) {}
+    showToast('Home page updated!', 'success');
+  };
+
   const updateSettings = async (newSettings) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
     try {
@@ -453,7 +611,17 @@ export function DataProvider({ children }) {
       deleteMessage,
       saveProduct,
       deleteProduct,
-      updateSettings,
+            updateSettings,
+      homeContent,
+            updateHomeContent,
+      aboutContent,
+            updateAboutContent,
+      careersContent,
+      updateCareersContent,
+      applications,
+      submitApplication,
+      updateApplication,
+      deleteApplication,
       loginAdmin,
       logoutAdmin,
       changeAdminPassword

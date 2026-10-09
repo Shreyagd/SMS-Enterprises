@@ -1,42 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload, Archive, ArchiveRestore } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload, Video, Archive, ArchiveRestore } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { PRODUCT_CATEGORIES } from '../../data/products';
-
-// Resize uploaded photos (max 1200px, JPEG) so they stay small enough to store with the catalogue
-function compressImage(file, maxSize = 1200, quality = 0.82) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', quality));
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// Resolves true if the URL loads as an image in the browser
-function canLoadImage(url) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => resolve(true);
-    img.onerror = () => resolve(false);
-    img.src = url;
-  });
-}
+import { compressImage, canLoadImage } from '../../utils/images';
+import { uploadVideo, isVideo } from '../../utils/media';
+import Media from '../common/Media';
 
 export default function AdminProducts() {
   const { products, saveProduct, deleteProduct, showToast } = useData();
@@ -121,7 +89,7 @@ export default function AdminProducts() {
       return;
     }
 
-    if (!(await canLoadImage(url))) {
+        if (!isVideo(url) && !(await canLoadImage(url))) {
       showToast('That link does not open an image. Use a direct image link (ending in .jpg/.png/.webp) or the "Upload images" button.', 'error');
       return;
     }
@@ -134,6 +102,24 @@ export default function AdminProducts() {
 
   const makeMainImage = (index) => {
     setImages([formImages[index], ...formImages.filter((_, i) => i !== index)]);
+  };
+
+    const handleVideoUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const results = [];
+      for (const file of files) results.push(await uploadVideo(file));
+      setImages([...formImages, ...results.map(r => r.url)]);
+      if (results.some(r => r.localOnly)) {
+        showToast('Video added. Note: without the website server running, it is saved in this browser only — other visitors will not see it.', 'info');
+      }
+    } catch (err) {
+      showToast(err.message || 'Could not upload that video.', 'error');
+    }
+    setUploading(false);
   };
 
   const handleImageUpload = async (e) => {
@@ -228,7 +214,7 @@ export default function AdminProducts() {
                 <tr key={p.id}>
                   <td>
                     <div className="prod-cell">
-                      <img src={p.image} alt={p.name} className="prod-table-thumb" />
+                      <Media src={p.image} alt={p.name} className="prod-table-thumb" />
                       <div>
                         <strong>{p.name}</strong>
                         <span className="prod-cell-sub">{p.subtitle}</span>
@@ -419,15 +405,16 @@ export default function AdminProducts() {
 
               <div className="form-group">
                 <label className="form-label">Product Images</label>
-                <p className="img-help">The first image is the main image shown on product cards. Click ★ to make an image the main one.</p>
+                <p className="img-help">The first item is the main image shown on product cards (images or videos). Click ★ to make an image the main one.</p>
                 <div className="img-grid">
                   {formImages.map((src, i) => (
                     <div key={i} className={`img-tile ${i === 0 ? 'img-main' : ''} ${brokenImages[src] ? 'img-broken' : ''}`}>
-                      <img
+                                            <Media
                         src={src}
                         alt={`Product ${i + 1}`}
                         onError={() => setBrokenImages(prev => ({ ...prev, [src]: true }))}
                       />
+                      {isVideo(src) && <span className="img-video-tag">Video</span>}
                       {brokenImages[src] && <span className="img-broken-tag">Broken – remove</span>}
                       {i === 0 ? (
                         <span className="img-main-tag">Main</span>
@@ -442,7 +429,12 @@ export default function AdminProducts() {
                   <label className={`img-upload ${uploading ? 'img-uploading' : ''}`}>
                     <Upload size={22} />
                     <span>{uploading ? 'Uploading…' : 'Upload images'}</span>
-                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} hidden disabled={uploading} />
+                                        <input type="file" accept="image/*" multiple onChange={handleImageUpload} hidden disabled={uploading} />
+                  </label>
+                  <label className={`img-upload ${uploading ? 'img-uploading' : ''}`}>
+                    <Video size={22} />
+                    <span>{uploading ? 'Uploading…' : 'Upload video'}</span>
+                    <input type="file" accept="video/*" multiple onChange={handleVideoUpload} hidden disabled={uploading} />
                   </label>
                 </div>
                 <div className="img-url-row">
@@ -702,6 +694,22 @@ export default function AdminProducts() {
           color: #dc2626;
           font-size: 0.72rem;
           font-weight: 700;
+        }
+                .img-tile video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .img-video-tag {
+          position: absolute;
+          right: 6px;
+          bottom: 6px;
+          background: rgba(15, 23, 42, 0.8);
+          color: #fff;
+          font-size: 0.68rem;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 999px;
         }
         .img-main-tag {
           position: absolute;

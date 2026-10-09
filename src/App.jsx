@@ -11,6 +11,7 @@ import ProductDetailPage from './components/public/ProductDetailPage';
 import GalleryPage from './components/public/GalleryPage';
 import AboutPage from './components/public/AboutPage';
 import ContactPage from './components/public/ContactPage';
+import CareersPage from './components/public/CareersPage';
 
 // Admin Components
 import AdminLayout from './components/admin/AdminLayout';
@@ -32,12 +33,15 @@ function checkIsAdminUrl() {
   );
 }
 
-const PAGES = ['home', 'products', 'gallery', 'about', 'contact'];
+const PAGES = ['home', 'products', 'gallery', 'about', 'careers', 'contact'];
 
 // Map the URL path to a public page: /products/<slug> opens a product page.
 function parseRoute() {
   const parts = window.location.pathname.toLowerCase().split('/').filter(Boolean);
-  if (parts[0] === 'products' && parts[1]) return { page: 'product', slug: parts[1] };
+    if (parts[0] === 'products' && parts[1]) return { page: 'product', slug: parts[1] };
+  if (parts[0] === 'products') {
+    return { page: 'products', slug: null, category: new URLSearchParams(window.location.search).get('category') };
+  }
   if (PAGES.includes(parts[0])) return { page: parts[0], slug: null };
   return { page: 'home', slug: null };
 }
@@ -55,14 +59,16 @@ function MainApp() {
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [quoteInitialProduct, setQuoteInitialProduct] = useState('');
 
-  const navigate = (page, slug = null) => {
-    const path = page === 'product' ? `/products/${slug}` : page === 'home' ? '/' : `/${page}`;
-    if (window.location.pathname !== path) window.history.pushState(null, '', path);
-    setRoute({ page, slug });
+    const navigate = (page, slug = null, category = null) => {
+    let path = page === 'product' ? `/products/${slug}` : page === 'home' ? '/' : `/${page}`;
+    if (page === 'products' && category) path += `?category=${category}`;
+    if (window.location.pathname + window.location.search !== path) window.history.pushState(null, '', path);
+    setRoute({ page, slug, category });
     window.scrollTo({ top: 0 });
   };
   const setActivePage = (page) => navigate(page);
-  const openProduct = (product) => navigate('product', product.slug || product.id);
+    const openProduct = (product) => navigate('product', product.slug || product.id);
+  const openCategory = (categorySlug) => navigate('products', null, categorySlug);
 
   const handleOpenAdmin = () => {
     if (window.location.hash !== '#admin') {
@@ -150,7 +156,8 @@ function MainApp() {
         setActivePage={setActivePage} 
         onOpenQuoteModal={() => openQuoteForProduct('')} 
         onOpenAdmin={handleOpenAdmin}
-        onSelectProduct={openProduct}
+                onSelectProduct={openProduct}
+        onSelectCategory={openCategory}
       />
 
       <main className="public-content">
@@ -163,8 +170,10 @@ function MainApp() {
         )}
 
         {activePage === 'products' && (
-          <ProductsPage 
-            setActivePage={setActivePage} 
+                    <ProductsPage
+            categorySlug={route.category}
+            onSelectCategory={openCategory}
+            setActivePage={setActivePage}  
             onOpenQuoteModal={openQuoteForProduct} 
             onSelectProduct={openProduct} 
           />
@@ -193,8 +202,12 @@ function MainApp() {
           />
         )}
 
+                {activePage === 'careers' && (
+          <CareersPage />
+        )}
+
         {activePage === 'contact' && (
-          <ContactPage />
+          <ContactPage setActivePage={setActivePage} />
         )}
       </main>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, CheckCircle, ArrowRight, Phone, Layers } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import Media from '../common/Media';
 
 const sectionId = (title) => 'sec-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
@@ -63,9 +64,10 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
     ['Performance', product.elongation]
   ].filter(([, v]) => v);
 
+  const activeRelated = products.filter(p => !p.archived);
   const related = [
-    ...products.filter(p => p.category === product.category && p.id !== product.id),
-    ...products.filter(p => p.category !== product.category)
+    ...activeRelated.filter(p => p.category === product.category && p.id !== product.id),
+    ...activeRelated.filter(p => p.category !== product.category)
   ].slice(0, 3);
 
   return (
@@ -86,8 +88,8 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
         <div className="container pd-hero-grid">
           <div className="pd-gallery">
             <div className="pd-main-img">
-              <img src={images[activeImg] || images[0]} alt={product.name} onError={() => markFailed(images[activeImg] || images[0])} />
-              {product.badge && <span className="pd-img-badge">{product.badge}</span>}
+              <Media key={images[activeImg] || images[0]} controls src={images[activeImg] || images[0]} alt={product.name} onError={() => markFailed(images[activeImg] || images[0])} />
+              {/* product.badge removed */}
             </div>
             {images.length > 1 && (
               <div className="pd-thumbs">
@@ -98,7 +100,7 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
                     onClick={() => setActiveImg(i)}
                     aria-label={`View image ${i + 1}`}
                   >
-                    <img src={src} alt="" onError={() => markFailed(src)} />
+                    <Media src={src} alt="" onError={() => markFailed(src)} />
                   </button>
                 ))}
               </div>
@@ -219,7 +221,7 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
             <div className="pd-related-grid">
               {related.map(p => (
                 <button key={p.id} className="card pd-rel-card" onClick={() => onSelectProduct(p)}>
-                  <div className="pd-rel-img"><img src={p.image} alt={p.name} loading="lazy" /></div>
+                  <div className="pd-rel-img"><Media src={p.image} alt={p.name} loading="lazy" /></div>
                   <div className="pd-rel-body">
                     <span className="pd-category">{p.category}</span>
                     <h3>{p.name}</h3>
@@ -250,12 +252,12 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
         .pd-hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: start; }
 
         .pd-main-img { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: #eef2f6; aspect-ratio: 4 / 3; box-shadow: var(--shadow-lg); }
-        .pd-main-img img { width: 100%; height: 100%; object-fit: contain; }
+        .pd-main-img img, .pd-main-img video { width: 100%; height: 100%; object-fit: contain; }
         .pd-hero-grid > *, .pd-body-grid > * { min-width: 0; }
         .pd-img-badge { position: absolute; top: 16px; left: 16px; background: var(--primary-navy); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: var(--radius-full); letter-spacing: 0.3px; }
         .pd-thumbs { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
         .pd-thumb { width: 84px; height: 66px; border-radius: var(--radius-sm); overflow: hidden; border: 2px solid transparent; padding: 0; cursor: pointer; background: #eef2f6; opacity: 0.7; transition: var(--transition); }
-        .pd-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .pd-thumb img, .pd-thumb video { width: 100%; height: 100%; object-fit: cover; }
         .pd-thumb.active, .pd-thumb:hover { border-color: var(--primary-green); opacity: 1; }
 
         .pd-category { display: inline-block; font-size: 0.75rem; font-weight: 700; color: var(--primary-green); text-transform: uppercase; letter-spacing: 0.8px; }
@@ -312,8 +314,8 @@ export default function ProductDetailPage({ slug, setActivePage, onOpenQuoteModa
         .pd-related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
         .pd-rel-card { text-align: left; cursor: pointer; padding: 0; font: inherit; display: flex; flex-direction: column; }
         .pd-rel-img { height: 190px; overflow: hidden; background: #eef2f6; width: 100%; }
-        .pd-rel-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
-        .pd-rel-card:hover .pd-rel-img img { transform: scale(1.06); }
+        .pd-rel-img img, .pd-rel-img video { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .pd-rel-card:hover .pd-rel-img img, .pd-rel-card:hover .pd-rel-img video { transform: scale(1.06); }
         .pd-rel-body { padding: 18px 20px 20px; }
         .pd-rel-body h3 { font-size: 1.15rem; margin: 6px 0 8px; }
         .pd-rel-body p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 12px; }

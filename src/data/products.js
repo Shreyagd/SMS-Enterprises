@@ -5,6 +5,15 @@
 // Main headings from the product doc, in display order
 export const PRODUCT_CATEGORIES = ['FMCG', 'Industrial', 'Agriculture'];
 
+export const CATEGORY_BLURBS = {
+  FMCG: 'Shrink films, labels, pouches and laminated films for food, beverage and consumer goods.',
+  Industrial: 'Stretch, shrink, VCI and lamination films for palletizing, transit and industrial packaging.',
+  Agriculture: 'UV-stabilised farm films and barrier pouches for crops, livestock feed and agro-chemicals.'
+};
+
+// "FMCG" -> "fmcg", "Agriculture" -> "agriculture" (used in /products?category=...)
+export const categorySlug = (category) => category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 const IMG = '/images/products/';
 
 const CATALOGUE = [

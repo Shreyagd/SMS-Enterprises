@@ -11,61 +11,35 @@ import {
   Factory, 
   Printer, 
   Users, 
-  Award,
-  Sparkles
+  Award
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import Media, { useMediaSrc } from '../common/Media';
 
 export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProduct }) {
-  const { settings, products } = useData();
+    const { products, homeContent } = useData();
 
   const activeProducts = products.filter(p => !p.archived);
-  const featuredProducts = (activeProducts.some(p => p.featured) ? activeProducts.filter(p => p.featured) : activeProducts).slice(0, 6);
+    const featuredProducts = (activeProducts.some(p => p.featured) ? activeProducts.filter(p => p.featured) : activeProducts)
+    .slice(0, homeContent.featured.count || 6);
 
-  const valueBadges = [
-    {
-      icon: <ShieldCheck size={26} className="feature-icon" />,
-      title: 'Superior Strength',
-      desc: 'High load holding & tear resistance'
-    },
-    {
-      icon: <Layers size={26} className="feature-icon" />,
-      title: 'Maximum Cling',
-      desc: 'Keeps load tight & secure'
-    },
-    {
-      icon: <ShieldAlert size={26} className="feature-icon" />,
-      title: 'Puncture Resistant',
-      desc: 'Protects from damage & dust'
-    },
-    {
-      icon: <Percent size={26} className="feature-icon" />,
-      title: 'Cost Effective',
-      desc: 'Reduces material usage & waste'
-    },
-    {
-      icon: <Recycle size={26} className="feature-icon" />,
-      title: '100% Recyclable',
-      desc: 'Environment friendly solution'
-    }
-  ];
-
-  const stats = [
-    { number: settings.experienceYears, label: 'YEARS OF EXPERIENCE', icon: <Award size={24} /> },
-    { number: settings.teamMembers, label: 'TEAM MEMBERS', icon: <Users size={24} /> },
-    { number: settings.happyCustomers, label: 'HAPPY CUSTOMERS', icon: <CheckCircle size={24} /> },
-    { number: settings.vendorPartners, label: 'VENDOR PARTNERS', icon: <Factory size={24} /> }
-  ];
+  const { hero, features, why, featured, infra, stats, cta } = homeContent;
+  const featureIcons = [ShieldCheck, Layers, ShieldAlert, Percent, Recycle];
+  const statIcons = [Award, Users, CheckCircle, Factory];
+  const shown = (section) => section.visible !== false;
+  const heroVideoUrl = useMediaSrc(hero.video);
 
   return (
     <div className="home-page-root">
       {/* 1. HERO SECTION (Dark theme matching reference mockup) */}
+            {shown(hero) && (
       <section className="hero-section">
         {/* Background video covering the whole banner */}
         <video
           className="hero-bg-video"
-          src="/videos/hero-3.mp4"
-          poster="/images/hero_pallet.jpg"
+                    key={hero.video}
+          src={heroVideoUrl || undefined}
+          poster={hero.poster}
           autoPlay
           muted
           loop
@@ -78,18 +52,17 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
         <div className="container hero-container">
           <div className="hero-content">
             <div className="hero-brand-pill">
-              <Sparkles size={14} className="text-gold" />
-              <span>SWASTIK BRAND PACKAGING EXCELLENCE</span>
+              <span>{hero.pill}</span>
             </div>
 
             <h1 className="hero-headline">
-              STRONGER WRAP.<br />
-              SAFER LOAD.<br />
-              <span className="hero-highlight">MAXIMUM VALUE.</span>
+                            {hero.line1}{hero.line1 && <br />}
+              {hero.line2}{hero.line2 && <br />}
+              <span className="hero-highlight">{hero.highlight}</span>
             </h1>
 
             <p className="hero-subtext">
-              High performance industrial stretch films and polymer flexible packaging solutions manufactured to protect your products during storage and international transportation.
+                            {hero.subtext}
             </p>
 
             <div className="hero-btn-group">
@@ -100,102 +73,82 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
-                <span>EXPLORE PRODUCTS</span>
+                                <span>{hero.primaryButton}</span>
                 <ArrowRight size={18} />
               </button>
 
               <button 
                 className="btn btn-white btn-lg"
-                onClick={() => onOpenQuoteModal()}
+                                onClick={() => onOpenQuoteModal()}
               >
-                GET A QUOTE
+                {hero.secondaryButton}
               </button>
             </div>
           </div>
 
         </div>
       </section>
+      )}
 
       {/* 2. 5 VALUE PROPOSITION BADGES STRIP (Matching mockup strip) */}
+            {shown(features) && (
       <section className="features-strip-section">
         <div className="container">
           <div className="features-grid">
-            {valueBadges.map((badge, idx) => (
+                        {features.items.map((badge, idx) => {
+              const Icon = featureIcons[idx % featureIcons.length];
+              return (
               <div key={idx} className="feature-item">
                 <div className="feature-icon-box">
-                  {badge.icon}
+                  <Icon size={26} className="feature-icon" />
                 </div>
                 <div className="feature-text">
                   <h4 className="feature-title">{badge.title}</h4>
-                  <p className="feature-desc">{badge.desc}</p>
+                                    <p className="feature-desc">{badge.desc}</p>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
+      )}
 
       {/* 3. WHY CHOOSE SMS ENTERPRISES? (Matching mockup section) */}
+            {shown(why) && (
       <section className="section why-choose-section">
         <div className="container">
           <div className="why-choose-grid">
             <div className="why-media">
               <div className="why-img-card">
-                <img 
-                  src="/images/pallet_machine.jpg" 
-                  alt="Automatic Pallet Wrapping Turntable Machine" 
+                <Media 
+                                    src={why.image}
+                  alt={why.imageBadge || why.title} 
                   className="why-img"
                 />
-                <div className="why-img-badge">
-                  <span>Industrial Turntable Testing</span>
-                </div>
+                {/* why.imageBadge removed */}
               </div>
             </div>
 
             <div className="why-content">
-              <span className="badge badge-green">SUPERIOR MANUFACTURING</span>
-              <h2 className="why-title">WHY CHOOSE {settings.companyName}?</h2>
+              {/* why.badge removed */}
+              <h2 className="why-title">{why.title}</h2>
               <p className="why-lead">
-                Our industrial stretch films and polymer flexible packaging solutions are manufactured with advanced multi-layer technology and strict quality control to deliver consistent performance you can rely on.
+                                {why.lead}
               </p>
 
               <ul className="why-checklist">
-                <li>
-                  <div className="check-icon-circle">
-                    <CheckCircle size={18} />
-                  </div>
-                  <div>
-                    <strong>Excellent load stability</strong>
-                    <p>High tension recovery prevents shifting during road and container transit.</p>
-                  </div>
-                </li>
-                <li>
-                  <div className="check-icon-circle">
-                    <CheckCircle size={18} />
-                  </div>
-                  <div>
-                    <strong>Suitable for all wrapping machines</strong>
-                    <p>Engineered for high-speed automated turntable and orbital wrappers.</p>
-                  </div>
-                </li>
-                <li>
-                  <div className="check-icon-circle">
-                    <CheckCircle size={18} />
-                  </div>
-                  <div>
-                    <strong>UV resistant options available</strong>
-                    <p>Up to 12-month outdoor weathering protection for agricultural and yard storage.</p>
-                  </div>
-                </li>
-                <li>
-                  <div className="check-icon-circle">
-                    <CheckCircle size={18} />
-                  </div>
-                  <div>
-                    <strong>Customized sizes & thickness</strong>
-                    <p>Tailored micron gauges (8µm to 120µm) and widths engineered to your payload.</p>
-                  </div>
-                </li>
+                {why.points.map((pt, i) => (
+                  <li key={i}>
+                    <div className="check-icon-circle">
+                      <CheckCircle size={18} />
+                    </div>
+                    <div>
+                      <strong>{pt.title}</strong>
+                      {pt.desc && <p>{pt.desc}</p>}
+                    </div>
+                  </li>
+                ))}
               </ul>
 
               <div className="why-action-row">
@@ -206,7 +159,7 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                 >
-                  <span>LEARN MORE ABOUT US</span>
+                                    <span>{why.button}</span>
                   <ArrowRight size={16} />
                 </button>
               </div>
@@ -214,15 +167,17 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
           </div>
         </div>
       </section>
+      )}
 
       {/* 4. FEATURED PRODUCTS PREVIEW */}
+            {shown(featured) && (
       <section className="section section-alt">
         <div className="container">
           <div className="section-title-wrap">
-            <span className="badge badge-green">FLAGSHIP PRODUCTS</span>
-            <h2 className="section-title">ENGINEERED PACKAGING FILMS</h2>
+                        {/* featured.badge removed */}
+            <h2 className="section-title">{featured.title}</h2>
             <p className="section-subtitle">
-              High performance stretch films, LDPE shrink rolls, and barrier laminates for modern industry.
+              {featured.subtitle}
             </p>
           </div>
 
@@ -230,8 +185,8 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
             {featuredProducts.map((prod) => (
               <div key={prod.id} className="card product-preview-card" style={{ cursor: 'pointer' }} onClick={() => onSelectProduct(prod)}>
                 <div className="prod-img-wrap">
-                  <img src={prod.image} alt={prod.name} className="prod-img" loading="lazy" />
-                  {prod.badge && <span className="prod-badge">{prod.badge}</span>}
+                  <Media src={prod.image} alt={prod.name} className="prod-img" loading="lazy" />
+                  {/* prod.badge removed */}
                 </div>
                 <div className="prod-card-body">
                   <span className="prod-cat">{prod.category}</span>
@@ -276,20 +231,22 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             >
-              <span>VIEW ALL PRODUCT LINES</span>
+                            <span>{featured.button}</span>
               <ChevronRight size={16} />
             </button>
           </div>
         </div>
       </section>
+      )}
 
       {/* 5. MANUFACTURING INFRASTRUCTURE STRIP (From PDF page 5 & 6) */}
+            {shown(infra) && (
       <section className="section section-dark infrastructure-strip">
         <div className="container">
           <div className="infra-header">
             <div>
-              <span className="badge badge-gold">PRECISION MACHINERY</span>
-              <h2 className="infra-title">WORLD-CLASS INFRASTRUCTURE</h2>
+                            {/* infra.badge removed */}
+              <h2 className="infra-title">{infra.title}</h2>
             </div>
             <button 
               className="btn btn-white btn-sm"
@@ -298,75 +255,64 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
             >
-              VISIT INFRASTRUCTURE GALLERY
+                            {infra.button}
             </button>
           </div>
 
           <div className="infra-grid">
-            <div className="infra-card">
-              <div className="infra-media">
-                <img src="/images/extrusion_plant.jpg" alt="Multi-Layer Extrusion Plant" />
-              </div>
-              <div className="infra-body">
-                <h4>Multi-Layer Blown Film Extrusion Plant</h4>
-                <p>Towering continuous bubble plant delivering micron uniformity, puncture barrier, and optical clarity.</p>
-              </div>
-            </div>
-
-            <div className="infra-card">
-              <div className="infra-media">
-                <img src="/images/rotogravure_press.jpg" alt="Rotogravure Printing Machine" />
-              </div>
-              <div className="infra-body">
-                <h4>Rotogravure Printing Machine (600 m/min)</h4>
-                <p>Ultra-fast multi-color rotogravure printing unit ensuring vibrant branding and defect-free registration.</p>
-              </div>
-            </div>
-
-            <div className="infra-card">
-              <div className="infra-media">
-                <img src="/images/packaging_showroom.jpg" alt="Laminated Rolls and Pouches" />
-              </div>
-              <div className="infra-body">
-                <h4>Laminated Rolls & Pouch Conversion Lines</h4>
-                <p>Equipped with Center sealing, Side sealing, and UNITEK 3-side seal pouch machines.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. VERIFIED PERFORMANCE STATS (From PDF Page 3) */}
-      <section className="section stats-counter-section">
-        <div className="container">
-          <div className="stats-grid">
-            {stats.map((st, i) => (
-              <div key={i} className="stat-card">
-                <div className="stat-icon-wrap">
-                  {st.icon}
+            {infra.cards.map((card, i) => (
+              <div key={i} className="infra-card">
+                <div className="infra-media">
+                  {card.image && <Media src={card.image} alt={card.title} loading="lazy" />}
                 </div>
-                <div className="stat-number">{st.number}</div>
-                <div className="stat-label">{st.label}</div>
+                <div className="infra-body">
+                  <h4>{card.title}</h4>
+                  <p>{card.desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
+      )}
+
+      {/* 6. VERIFIED PERFORMANCE STATS (From PDF Page 3) */}
+            {shown(stats) && (
+      <section className="section stats-counter-section">
+        <div className="container">
+          <div className="stats-grid">
+                        {stats.items.map((st, i) => {
+              const Icon = statIcons[i % statIcons.length];
+              return (
+              <div key={i} className="stat-card">
+                <div className="stat-icon-wrap">
+                  <Icon size={24} />
+                </div>
+                <div className="stat-number">{st.number}</div>
+                                <div className="stat-label">{st.label}</div>
+              </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+      )}
 
       {/* 7. BOTTOM CTA CALLOUT */}
+            {shown(cta) && (
       <section className="cta-banner-section">
         <div className="container">
           <div className="cta-banner-card">
             <div className="cta-text">
-              <h3>Need Customized Packaging or Volume Bulk Supply?</h3>
-              <p>We deliver factory-direct customized width, micron gauges, and print options from our Bengaluru unit.</p>
+                            <h3>{cta.title}</h3>
+              <p>{cta.text}</p>
             </div>
             <div className="cta-buttons">
               <button 
                 className="btn btn-white btn-lg"
                 onClick={() => onOpenQuoteModal()}
               >
-                REQUEST FACTORY QUOTE
+                                {cta.primaryButton}
               </button>
               <button 
                 className="btn btn-outline-white btn-lg"
@@ -375,12 +321,13 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               >
-                CONTACT US
+                                {cta.secondaryButton}
               </button>
             </div>
           </div>
         </div>
       </section>
+      )}
 
       <style>{`
         /* Hero Section */
@@ -707,13 +654,13 @@ export default function HomePage({ setActivePage, onOpenQuoteModal, onSelectProd
           height: 200px;
           overflow: hidden;
         }
-        .infra-media img {
+        .infra-media img, .infra-media video {
           width: 100%;
           height: 100%;
           object-fit: cover;
           transition: transform 0.4s ease;
         }
-        .infra-card:hover .infra-media img {
+        .infra-card:hover .infra-media img, .infra-card:hover .infra-media video {
           transform: scale(1.05);
         }
         .infra-body {

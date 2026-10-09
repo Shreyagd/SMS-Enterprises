@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
-export default function ContactPage() {
+export default function ContactPage({ setActivePage }) {
   const { settings, submitMessage } = useData();
 
   const [formData, setFormData] = useState({
@@ -284,9 +284,53 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
+            </section>
+
+      {/* Careers strip */}
+      <section className="contact-careers-strip">
+        <div className="container contact-careers-inner">
+          <div>
+            <span className="contact-careers-eyebrow">WE'RE HIRING</span>
+            <h3>Want to build your career with us?</h3>
+            <p>See current openings in production, quality and sales — and apply online in a few minutes.</p>
+          </div>
+          <button className="btn btn-white btn-lg" onClick={() => setActivePage && setActivePage('careers')}>
+            VIEW CAREERS
+          </button>
+        </div>
       </section>
 
       <style>{`
+        .contact-careers-strip {
+          background: linear-gradient(120deg, var(--primary-navy) 0%, var(--navy-light) 100%);
+          padding: 44px 0;
+        }
+        .contact-careers-inner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+        }
+        .contact-careers-eyebrow {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 1px;
+          color: #4ade80;
+        }
+        .contact-careers-inner h3 {
+          color: #fff;
+          font-size: 1.5rem;
+          margin: 6px 0;
+        }
+        .contact-careers-inner p {
+          color: #cbd5e1;
+        }
+        @media (max-width: 700px) {
+          .contact-careers-inner {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+        }
         .contact-header-section {
           background-color: #f8fafc;
           padding: 50px 0 20px;

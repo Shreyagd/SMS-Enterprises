@@ -8,12 +8,28 @@ import { PRODUCTS } from '../src/data/products.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_FILE = path.join(__dirname, 'data.json');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Uploaded media (videos from the admin portal)
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+app.post('/api/upload', express.raw({ type: () => true, limit: '200mb' }), (req, res) => {
+  const original = decodeURIComponent(req.get('X-Filename') || 'upload.bin');
+  const safeName = original.replace(/[^a-zA-Z0-9._-]+/g, '_').slice(-80);
+  if (!req.body || !req.body.length) {
+    return res.status(400).json({ success: false, error: 'Empty upload' });
+  }
+  const fileName = `${Date.now()}-${safeName}`;
+  fs.writeFileSync(path.join(UPLOADS_DIR, fileName), req.body);
+  res.json({ success: true, url: `/uploads/${fileName}` });
+});
 
 // Initial seed data with authentic details from SMS Enterprises PDF
 const initialData = {
@@ -339,6 +355,63 @@ app.post('/api/admin/change-password', (req, res) => {
   }
 });
 
+app.put('/api/careers', (req, res) => {
+  const data = loadData();
+  data.careers = req.body;
+  saveData(data);
+  res.json({ success: true, careers: data.careers });
+});
+
+// Job applications from the Careers page
+app.post('/api/applications', (req, res) => {
+  const data = loadData();
+  data.applications = data.applications || [];
+  const app_ = {
+    id: req.body.id || 'JOB-' + Math.floor(1000 + Math.random() * 9000),
+    date: req.body.date || new Date().toISOString(),
+    status: 'New',
+    name: req.body.name || '',
+    email: req.body.email || '',
+    phone: req.body.phone || '',
+    position: req.body.position || '',
+    experience: req.body.experience || '',
+    location: req.body.location || '',
+    message: req.body.message || '',
+    resume: req.body.resume || null
+  };
+  data.applications.unshift(app_);
+  saveData(data);
+  res.status(201).json({ success: true, application: app_ });
+});
+
+app.put('/api/applications/:id', (req, res) => {
+  const data = loadData();
+  data.applications = (data.applications || []).map(a => (a.id === req.params.id ? { ...a, ...req.body } : a));
+  saveData(data);
+  res.json({ success: true });
+});
+
+app.delete('/api/applications/:id', (req, res) => {
+  const data = loadData();
+  data.applications = (data.applications || []).filter(a => a.id !== req.params.id);
+  saveData(data);
+  res.json({ success: true });
+});
+
+app.put('/api/about', (req, res) => {
+  const data = loadData();
+  data.about = req.body;
+  saveData(data);
+  res.json({ success: true, about: data.about });
+});
+
+app.put('/api/home', (req, res) => {
+  const data = loadData();
+  data.home = req.body;
+  saveData(data);
+  res.json({ success: true, home: data.home });
+});
+
 app.put('/api/settings', (req, res) => {
   const data = loadData();
   data.settings = { ...data.settings, ...req.body };
@@ -350,7 +423,8 @@ app.put('/api/settings', (req, res) => {
 const distPath = path.join(__dirname, '..', 'dist');
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
-  app.get('*', (req, res, next) => {
+  // Express 5 needs a regex (not '*') for catch-all routes
+  app.get(/.*/, (req, res, next) => {
     if (req.path.startsWith('/api')) {
       return next();
     }
@@ -358,7 +432,7 @@ if (fs.existsSync(distPath)) {
   });
 } else {
   // If running in development without build, give clear guidance for /admin
-  app.get(['/admin', '/admin/*'], (req, res) => {
+  app.get(/^\/admin(\/.*)?$/, (req, res) => {
     res.send(`
       <div style="font-family: sans-serif; padding: 40px; text-align: center; max-width: 600px; margin: 0 auto;">
         <h2>SMS Enterprises - Admin Portal</h2>
