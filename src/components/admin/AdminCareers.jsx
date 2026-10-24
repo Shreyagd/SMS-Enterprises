@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Save, RotateCcw, ExternalLink, Undo2, FileText, Trash2, Mail, Phone, Download, Inbox } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { getResumeUrl } from '../../utils/media';
 import { DEFAULT_CAREERS_CONTENT } from '../../data/careersContent';
 import { TextField, ListEditor, Section, EditorStyles } from './ContentFields';
 
 const STATUSES = ['New', 'Reviewed', 'Shortlisted', 'Rejected', 'Hired'];
 
 function Applications() {
-  const { applications, updateApplication, deleteApplication } = useData();
+  const { applications, updateApplication, deleteApplication, showToast } = useData();
   const [filter, setFilter] = useState('All');
   const [openId, setOpenId] = useState(null);
 
@@ -63,9 +64,23 @@ function Applications() {
                   <dt>Resume</dt>
                   <dd>
                     {app.resume ? (
-                      <a className="btn btn-secondary btn-sm" href={app.resume.url} download={app.resume.name} target="_blank" rel="noreferrer">
+                                            <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        onClick={async () => {
+                          // Open the tab first (pop-up blockers), then point it at the resume
+                          const tab = window.open('', '_blank');
+                          try {
+                            const link = await getResumeUrl(app.resume);
+                            if (tab) tab.location.href = link; else window.location.href = link;
+                          } catch (err) {
+                            if (tab) tab.close();
+                            showToast('Could not open the resume: ' + err.message, 'error');
+                          }
+                        }}
+                      >
                         <Download size={14} /> {app.resume.name}
-                      </a>
+                      </button>
                     ) : 'Not attached'}
                   </dd>
                 </dl>

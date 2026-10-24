@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { supabase } from '../lib/supabase';
 import { PRODUCTS } from '../data/products';
 import { DEFAULT_HOME_CONTENT, mergeHomeContent } from '../data/homeContent';
 import { DEFAULT_ABOUT_CONTENT, mergeAboutContent } from '../data/aboutContent';
@@ -152,6 +153,40 @@ const DEFAULT_MESSAGES = [
   }
 ];
 
+// ── Supabase helpers (used only when VITE_SUPABASE_URL / KEY are configured) ──
+const toAdmin = (user) => ({ email: user.email, name: 'Admin - SMS Enterprises' });
+// The legacy admin password must never be stored online
+const publicSettings = ({ adminPassword, ...rest }) => rest;
+
+async function remoteSaveContent(key, value) {
+  const { error } = await supabase.from('site_content').upsert({ key, value, updated_at: new Date().toISOString() });
+  if (error) throw new Error(error.message);
+}
+async function remoteInsert(table, item) {
+  // No .select(): visitors may submit but not read back
+  const { error } = await supabase.from(table).insert({ id: item.id, data: item });
+  if (error) throw new Error(error.message);
+}
+async function remoteUpdate(table, item) {
+  const { error } = await supabase.from(table).update({ data: item }).eq('id', item.id);
+  if (error) throw new Error(error.message);
+}
+async function remoteDelete(table, id) {
+  const { error } = await supabase.from(table).delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+async function remoteList(table) {
+  const { data, error } = await supabase.from(table).select('data').order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return data.map(row => row.data);
+}
+
+const jsonRequest = (url, method, body) => fetch(url, {
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: body === undefined ? undefined : JSON.stringify(body)
+});
+
 export function DataProvider({ children }) {
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem('sms_settings');
@@ -195,7 +230,9 @@ export function DataProvider({ children }) {
     }
   });
 
+  // Submissions: with Supabase they are loaded from the database after admin login
   const [applications, setApplications] = useState(() => {
+    if (supabase) return [];
     try {
       return JSON.parse(localStorage.getItem('sms_applications')) || [];
     } catch {
@@ -209,17 +246,20 @@ export function DataProvider({ children }) {
   });
 
   const [quotes, setQuotes] = useState(() => {
+    if (supabase) return [];
     const saved = localStorage.getItem('sms_quotes');
     return saved ? JSON.parse(saved) : DEFAULT_QUOTES;
   });
 
   const [messages, setMessages] = useState(() => {
+    if (supabase) return [];
     const saved = localStorage.getItem('sms_messages');
     return saved ? JSON.parse(saved) : DEFAULT_MESSAGES;
   });
 
-  // Admin authentication state
+  // Admin authentication state (Supabase restores its own session below)
   const [adminUser, setAdminUser] = useState(() => {
+    if (supabase) return null;
     const session = sessionStorage.getItem('sms_admin_session');
     return session ? JSON.parse(session) : null;
   });
@@ -228,37 +268,103 @@ export function DataProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
   const showToast = (message, type = 'success') => {
-    const id = Date.now();
+    const id = Date.now() + Math.random();
     setToasts(prev => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 4000);
   };
 
-  // Sync with backend API if available
+  // Latest state for async work (seeding Supabase on first admin login)
+  const stateRef = useRef();
+  stateRef.current = { settings, products, homeContent, aboutContent, careersContent, gallery };
+
+  // Load site content: Supabase when configured, otherwise the local Node server if running
   useEffect(() => {
-    fetch('/api/data')
-      .then(res => {
-        if (!res.ok) throw new Error(`Server returned ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        if (data.settings) setSettings(data.settings);
-        if (data.home) setHomeContent(mergeHomeContent(data.home));
-        if (data.about) setAboutContent(mergeAboutContent(data.about));
-        if (data.careers) setCareersContent(mergeCareersContent(data.careers));
-        if (data.applications) setApplications(data.applications);
-        if (data.products) setProducts(data.products);
-        if (data.gallery) setGallery(data.gallery);
-        if (data.quotes) setQuotes(data.quotes);
-        if (data.messages) setMessages(data.messages);
-      })
-      .catch(err => {
-        console.log('Using local persistent storage engine:', err.message);
-      });
+    if (!supabase) {
+      jsonRequest('/api/data', 'GET')
+        .then(res => {
+          if (!res.ok) throw new Error(`Server returned ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
+          if (data.settings) setSettings(data.settings);
+          if (data.home) setHomeContent(mergeHomeContent(data.home));
+          if (data.about) setAboutContent(mergeAboutContent(data.about));
+          if (data.careers) setCareersContent(mergeCareersContent(data.careers));
+          if (data.applications) setApplications(data.applications);
+          if (data.products) setProducts(data.products);
+          if (data.gallery) setGallery(data.gallery);
+          if (data.quotes) setQuotes(data.quotes);
+          if (data.messages) setMessages(data.messages);
+        })
+        .catch(err => {
+          console.log('Using local persistent storage engine:', err.message);
+        });
+      return;
+    }
+
+    supabase.from('site_content').select('key, value').then(({ data, error }) => {
+      if (error) {
+        console.warn('Supabase content not loaded (run supabase/setup.sql?):', error.message);
+        return;
+      }
+      const c = Object.fromEntries(data.map(row => [row.key, row.value]));
+      if (c.settings) setSettings(prev => ({ ...DEFAULT_SETTINGS, ...c.settings, adminPassword: prev.adminPassword }));
+      if (c.products) setProducts(c.products);
+      if (c.home) setHomeContent(mergeHomeContent(c.home));
+      if (c.about) setAboutContent(mergeAboutContent(c.about));
+      if (c.careers) setCareersContent(mergeCareersContent(c.careers));
+      if (c.gallery) setGallery(c.gallery);
+    });
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setAdminUser(toAdmin(data.session.user));
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAdminUser(session ? toAdmin(session.user) : null);
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
 
-  // Sync to local storage
+  // Supabase + admin signed in: load submissions, and on the first login copy this
+  // browser's content into the database for anything not stored online yet
+  const adminEmail = adminUser?.email;
+  useEffect(() => {
+    if (!supabase || !adminEmail) return;
+    (async () => {
+      try {
+        const [q, m, a] = await Promise.all([remoteList('quotes'), remoteList('messages'), remoteList('applications')]);
+        setQuotes(q);
+        setMessages(m);
+        setApplications(a);
+      } catch (err) {
+        showToast(`Could not load submissions: ${err.message}`, 'error');
+        return;
+      }
+      try {
+        const { data, error } = await supabase.from('site_content').select('key');
+        if (error) throw new Error(error.message);
+        const existing = new Set(data.map(row => row.key));
+        const cur = stateRef.current;
+        const initial = {
+          settings: publicSettings(cur.settings),
+          products: cur.products,
+          home: cur.homeContent,
+          about: cur.aboutContent,
+          careers: cur.careersContent,
+          gallery: cur.gallery
+        };
+        const missing = Object.keys(initial).filter(key => !existing.has(key));
+        for (const key of missing) await remoteSaveContent(key, initial[key]);
+        if (missing.length) showToast(`Website content copied to Supabase (${missing.join(', ')}).`, 'success');
+      } catch (err) {
+        showToast(`Could not copy content to Supabase: ${err.message}`, 'error');
+      }
+    })();
+  }, [adminEmail]);
+
+  // Sync to local storage (fast first load; the only storage when no backend exists)
   useEffect(() => {
     localStorage.setItem('sms_settings', JSON.stringify(settings));
   }, [settings]);
@@ -268,7 +374,7 @@ export function DataProvider({ children }) {
       localStorage.setItem('sms_products_v3', JSON.stringify(products));
     } catch {
       // Uploaded images can exceed the browser storage quota
-      showToast('Browser storage is full — remove some uploaded images or use image URLs.', 'error');
+      if (!supabase) showToast('Browser storage is full — remove some uploaded images or use image URLs.', 'error');
     }
   }, [products]);
 
@@ -277,14 +383,106 @@ export function DataProvider({ children }) {
   }, [gallery]);
 
   useEffect(() => {
-    localStorage.setItem('sms_quotes', JSON.stringify(quotes));
+    if (!supabase) localStorage.setItem('sms_quotes', JSON.stringify(quotes));
   }, [quotes]);
 
   useEffect(() => {
-    localStorage.setItem('sms_messages', JSON.stringify(messages));
+    if (!supabase) localStorage.setItem('sms_messages', JSON.stringify(messages));
   }, [messages]);
 
-  // Actions
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_home', JSON.stringify(homeContent));
+    } catch {
+      if (!supabase) showToast('Browser storage is full — use smaller images or image links on the home page.', 'error');
+    }
+  }, [homeContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_about', JSON.stringify(aboutContent));
+    } catch {
+      if (!supabase) showToast('Browser storage is full — use smaller images or image links on the About Us page.', 'error');
+    }
+  }, [aboutContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_careers', JSON.stringify(careersContent));
+    } catch {
+      if (!supabase) showToast('Browser storage is full — could not save the Careers page.', 'error');
+    }
+  }, [careersContent]);
+
+  useEffect(() => {
+    if (supabase) return;
+    try {
+      localStorage.setItem('sms_applications', JSON.stringify(applications));
+    } catch {
+      showToast('Browser storage is full — delete some old job applications.', 'error');
+    }
+  }, [applications]);
+
+  // ── Shared persistence helpers ──
+  // Save one piece of site content. Resolves true when saved (or when there is no online storage).
+  const saveContent = async (key, value, legacy) => {
+    if (supabase) {
+      try {
+        await remoteSaveContent(key, value);
+        return true;
+      } catch (err) {
+        showToast(`Not saved online: ${err.message}`, 'error');
+        return false;
+      }
+    }
+    try { await legacy(); } catch { /* no backend: kept in this browser */ }
+    return true;
+  };
+
+  // Visitor submissions. With Supabase a failure is reported to the visitor (throws).
+  const submitRow = async (table, item, legacy) => {
+    if (supabase) {
+      try {
+        await remoteInsert(table, item);
+      } catch (err) {
+        showToast('Sorry, we could not send this. Please try again or contact us by phone/email.', 'error');
+        throw err;
+      }
+      return;
+    }
+    try { await legacy(); } catch { /* no backend: kept in this browser */ }
+  };
+
+  const updateRow = async (table, list, id, updates, legacy) => {
+    const current = list.find(x => x.id === id);
+    if (supabase && current) {
+      try {
+        await remoteUpdate(table, { ...current, ...updates });
+      } catch (err) {
+        showToast(`Not saved online: ${err.message}`, 'error');
+        return false;
+      }
+      return true;
+    }
+    try { await legacy(); } catch { /* no backend */ }
+    return true;
+  };
+
+  const deleteRow = async (table, id, legacy) => {
+    if (supabase) {
+      try {
+        await remoteDelete(table, id);
+      } catch (err) {
+        showToast(`Not deleted online: ${err.message}`, 'error');
+        return false;
+      }
+      return true;
+    }
+    try { await legacy(); } catch { /* no backend */ }
+    return true;
+  };
+
+  // ── Quotes ──
   const submitQuote = async (quoteData) => {
     const newQuote = {
       id: 'RFQ-' + Math.floor(1000 + Math.random() * 9000),
@@ -293,44 +491,27 @@ export function DataProvider({ children }) {
       adminNotes: '',
       ...quoteData
     };
-
+    await submitRow('quotes', newQuote, () => jsonRequest('/api/quotes', 'POST', quoteData));
     setQuotes(prev => [newQuote, ...prev]);
-
-    // Send to backend API
-    try {
-      await fetch('/api/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(quoteData)
-      });
-    } catch (e) {
-      console.log('Saved to local store');
-    }
-
     showToast('Your quote request has been submitted successfully! Our team will contact you shortly.', 'success');
     return newQuote;
   };
 
   const updateQuote = async (id, updates) => {
     setQuotes(prev => prev.map(q => q.id === id ? { ...q, ...updates } : q));
-    try {
-      await fetch(`/api/quotes/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-    } catch (e) {}
-    showToast('Quote updated successfully!', 'success');
+    if (await updateRow('quotes', quotes, id, updates, () => jsonRequest(`/api/quotes/${id}`, 'PUT', updates))) {
+      showToast('Quote updated successfully!', 'success');
+    }
   };
 
   const deleteQuote = async (id) => {
     setQuotes(prev => prev.filter(q => q.id !== id));
-    try {
-      await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
-    } catch (e) {}
-    showToast('Quote record deleted.', 'info');
+    if (await deleteRow('quotes', id, () => jsonRequest(`/api/quotes/${id}`, 'DELETE'))) {
+      showToast('Quote record deleted.', 'info');
+    }
   };
 
+  // ── Contact messages ──
   const submitMessage = async (msgData) => {
     const newMsg = {
       id: 'MSG-' + Math.floor(1000 + Math.random() * 9000),
@@ -338,122 +519,56 @@ export function DataProvider({ children }) {
       status: 'Unread',
       ...msgData
     };
-
+    await submitRow('messages', newMsg, () => jsonRequest('/api/messages', 'POST', msgData));
     setMessages(prev => [newMsg, ...prev]);
-
-    try {
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(msgData)
-      });
-    } catch (e) {}
-
     showToast('Thank you for reaching out! We will respond promptly.', 'success');
     return newMsg;
   };
 
   const updateMessage = async (id, updates) => {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
-    try {
-      await fetch(`/api/messages/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-    } catch (e) {}
+    await updateRow('messages', messages, id, updates, () => jsonRequest(`/api/messages/${id}`, 'PUT', updates));
   };
 
   const deleteMessage = async (id) => {
     setMessages(prev => prev.filter(m => m.id !== id));
-    try {
-      await fetch(`/api/messages/${id}`, { method: 'DELETE' });
-    } catch (e) {}
-    showToast('Message deleted.', 'info');
+    if (await deleteRow('messages', id, () => jsonRequest(`/api/messages/${id}`, 'DELETE'))) {
+      showToast('Message deleted.', 'info');
+    }
   };
 
+  // ── Products ──
   const saveProduct = async (productData) => {
     if (productData.id) {
-      // Edit
-      setProducts(prev => prev.map(p => p.id === productData.id ? productData : p));
-      try {
-        await fetch(`/api/products/${productData.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productData)
-        });
-      } catch (e) {}
-      showToast('Product updated successfully!', 'success');
+      const next = products.map(p => p.id === productData.id ? productData : p);
+      setProducts(next);
+      if (await saveContent('products', next, () => jsonRequest(`/api/products/${productData.id}`, 'PUT', productData))) {
+        showToast('Product updated successfully!', 'success');
+      }
     } else {
-      // Create
-      const newProd = {
-        ...productData,
-        id: 'prod-' + Date.now()
-      };
-      setProducts(prev => [...prev, newProd]);
-      try {
-        await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newProd)
-        });
-      } catch (e) {}
-      showToast('New product added to catalog!', 'success');
+      const newProd = { ...productData, id: 'prod-' + Date.now() };
+      const next = [...products, newProd];
+      setProducts(next);
+      if (await saveContent('products', next, () => jsonRequest('/api/products', 'POST', newProd))) {
+        showToast('New product added to catalog!', 'success');
+      }
     }
   };
 
   const deleteProduct = async (id) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-    try {
-      await fetch(`/api/products/${id}`, { method: 'DELETE' });
-    } catch (e) {}
-    showToast('Product removed from catalog.', 'info');
+    const next = products.filter(p => p.id !== id);
+    setProducts(next);
+    if (await saveContent('products', next, () => jsonRequest(`/api/products/${id}`, 'DELETE'))) {
+      showToast('Product removed from catalog.', 'info');
+    }
   };
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('sms_home', JSON.stringify(homeContent));
-    } catch {
-      showToast('Browser storage is full — use smaller images or image links on the home page.', 'error');
-    }
-  }, [homeContent]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sms_about', JSON.stringify(aboutContent));
-    } catch {
-      showToast('Browser storage is full — use smaller images or image links on the About Us page.', 'error');
-    }
-  }, [aboutContent]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sms_careers', JSON.stringify(careersContent));
-    } catch {
-      showToast('Browser storage is full — could not save the Careers page.', 'error');
-    }
-  }, [careersContent]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('sms_applications', JSON.stringify(applications));
-    } catch {
-      showToast('Browser storage is full — delete some old job applications.', 'error');
-    }
-  }, [applications]);
-
+  // ── Careers ──
   const updateCareersContent = async (content) => {
     setCareersContent(content);
-    try {
-      await fetch('/api/careers', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content)
-      });
-    } catch {
-      // No backend: content stays in this browser
+    if (await saveContent('careers', content, () => jsonRequest('/api/careers', 'PUT', content))) {
+      showToast('Careers page updated!', 'success');
     }
-    showToast('Careers page updated!', 'success');
   };
 
   const submitApplication = async (appData) => {
@@ -463,89 +578,63 @@ export function DataProvider({ children }) {
       status: 'New',
       ...appData
     };
+    await submitRow('applications', newApp, () => jsonRequest('/api/applications', 'POST', newApp));
     setApplications(prev => [newApp, ...prev]);
-    try {
-      await fetch('/api/applications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newApp)
-      });
-    } catch {
-      // No backend: stored in this browser
-    }
     showToast('Thank you! Your application has been submitted.', 'success');
     return newApp;
   };
 
   const updateApplication = async (id, updates) => {
     setApplications(prev => prev.map(a => (a.id === id ? { ...a, ...updates } : a)));
-    try {
-      await fetch(`/api/applications/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-      });
-    } catch {
-      // No backend
-    }
+    await updateRow('applications', applications, id, updates, () => jsonRequest(`/api/applications/${id}`, 'PUT', updates));
   };
 
   const deleteApplication = async (id) => {
     setApplications(prev => prev.filter(a => a.id !== id));
-    try {
-      await fetch(`/api/applications/${id}`, { method: 'DELETE' });
-    } catch {
-      // No backend
+    if (await deleteRow('applications', id, () => jsonRequest(`/api/applications/${id}`, 'DELETE'))) {
+      showToast('Application deleted.', 'info');
     }
-    showToast('Application deleted.', 'info');
   };
 
+  // ── Page content & settings ──
   const updateAboutContent = async (content) => {
     setAboutContent(content);
-    try {
-      await fetch('/api/about', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content)
-      });
-    } catch {
-      // No backend (e.g. static hosting): content stays in this browser
+    if (await saveContent('about', content, () => jsonRequest('/api/about', 'PUT', content))) {
+      showToast('About Us page updated!', 'success');
     }
-    showToast('About Us page updated!', 'success');
   };
 
   const updateHomeContent = async (content) => {
     setHomeContent(content);
-    try {
-      await fetch('/api/home', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content)
-      });
-    } catch (e) {}
-    showToast('Home page updated!', 'success');
+    if (await saveContent('home', content, () => jsonRequest('/api/home', 'PUT', content))) {
+      showToast('Home page updated!', 'success');
+    }
   };
 
   const updateSettings = async (newSettings) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
-    try {
-      await fetch('/api/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSettings)
-      });
-    } catch (e) {}
-    showToast('Company settings updated!', 'success');
+    const merged = { ...settings, ...newSettings };
+    setSettings(merged);
+    if (await saveContent('settings', publicSettings(merged), () => jsonRequest('/api/settings', 'PUT', newSettings))) {
+      showToast('Company settings updated!', 'success');
+    }
   };
 
+  // ── Admin authentication ──
   const loginAdmin = async (email, password) => {
+    if (supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) {
+        const msg = /invalid login credentials/i.test(error.message) ? 'Invalid email or password. Please try again.' : error.message;
+        return { success: false, error: msg };
+      }
+      setAdminUser(toAdmin(data.user));
+      showToast('Welcome back, Admin!', 'success');
+      return { success: true };
+    }
+
     // Try API first
     try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const res = await jsonRequest('/api/admin/login', 'POST', { email, password });
       const data = await res.json();
       if (res.ok && data.success) {
         setAdminUser(data.user);
@@ -553,7 +642,7 @@ export function DataProvider({ children }) {
         showToast('Welcome back, Admin!', 'success');
         return { success: true };
       }
-    } catch (e) {}
+    } catch { /* no server */ }
 
     // Fallback authentication
     if (
@@ -570,31 +659,39 @@ export function DataProvider({ children }) {
     return { success: false, error: 'Invalid admin credentials. Please try again.' };
   };
 
-  const logoutAdmin = () => {
+  const logoutAdmin = async () => {
+    if (supabase) await supabase.auth.signOut();
     setAdminUser(null);
     sessionStorage.removeItem('sms_admin_session');
     showToast('Logged out of Admin Portal.', 'info');
   };
 
   const changeAdminPassword = async (currentPassword, newPassword) => {
+    if (supabase) {
+      const email = adminUser?.email;
+      const check = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+      if (check.error) return { success: false, error: 'Current password does not match.' };
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) return { success: false, error: error.message };
+      showToast('Admin password changed successfully!', 'success');
+      return { success: true };
+    }
+
     if (currentPassword !== settings.adminPassword) {
       return { success: false, error: 'Current password does not match.' };
     }
     const updated = { ...settings, adminPassword: newPassword };
     setSettings(updated);
     try {
-      await fetch('/api/admin/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentPassword, newPassword })
-      });
-    } catch (e) {}
+      await jsonRequest('/api/admin/change-password', 'POST', { currentPassword, newPassword });
+    } catch { /* no server */ }
     showToast('Admin password changed successfully!', 'success');
     return { success: true };
   };
 
   return (
     <DataContext.Provider value={{
+      usingSupabase: !!supabase,
       settings,
       products,
       gallery,
@@ -611,11 +708,11 @@ export function DataProvider({ children }) {
       deleteMessage,
       saveProduct,
       deleteProduct,
-            updateSettings,
+      updateSettings,
       homeContent,
-            updateHomeContent,
+      updateHomeContent,
       aboutContent,
-            updateAboutContent,
+      updateAboutContent,
       careersContent,
       updateCareersContent,
       applications,

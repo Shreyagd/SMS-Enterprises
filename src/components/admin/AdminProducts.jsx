@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload, Video, Archive, ArchiveRestore } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { PRODUCT_CATEGORIES } from '../../data/products';
-import { compressImage, canLoadImage } from '../../utils/images';
+import { uploadImage, canLoadImage } from '../../utils/images';
 import { uploadVideo, isVideo } from '../../utils/media';
 import Media from '../common/Media';
 
@@ -128,10 +128,10 @@ export default function AdminProducts() {
     if (!files.length) return;
     setUploading(true);
     try {
-      const uploaded = await Promise.all(files.map(f => compressImage(f)));
+      const uploaded = await Promise.all(files.map(f => uploadImage(f)));
       setImages([...formImages, ...uploaded]);
-    } catch {
-      showToast('Could not read one of the images. Please try another file.', 'error');
+    } catch (err) {
+      showToast(err?.message ? 'Upload failed: ' + err.message : 'Could not read one of the images. Please try another file.', 'error');
     }
     setUploading(false);
   };

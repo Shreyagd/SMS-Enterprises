@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, ArrowUp, ArrowDown, Upload, Video } from 'lucide-react';
 import { useData } from '../../context/DataContext';
-import { compressImage, canLoadImage } from '../../utils/images';
+import { uploadImage, canLoadImage } from '../../utils/images';
 import { uploadVideo, isVideo } from '../../utils/media';
 import Media from '../common/Media';
 
@@ -50,9 +50,9 @@ export function ImageField({ label, value, onChange, accept = 'both' }) {
     if (!file) return;
     setBusy(true);
     try {
-      onChange(await compressImage(file));
-    } catch {
-      showToast('Could not read that image. Please try a JPG or PNG file.', 'error');
+      onChange(await uploadImage(file));
+    } catch (err) {
+      showToast(err?.message ? 'Upload failed: ' + err.message : 'Could not read that image. Please try a JPG or PNG file.', 'error');
     }
     setBusy(false);
   };

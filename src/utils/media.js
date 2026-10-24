@@ -2,8 +2,11 @@
 //   1. to the Node server (POST /api/upload) when it is running → a real file URL every visitor can load;
 //   2. otherwise into this browser's IndexedDB → an "idb:video:<id>" reference only this browser can play.
 
-const VIDEO_EXT = /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i;
-export const MAX_VIDEO_MB = 200;
+import { supabase, uploadToBucket, publicUrl, MEDIA_BUCKET, RESUME_BUCKET } from '../lib/supabase';
+
+const VIDEO_EXT =  /\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i;
+// Supabase's free plan accepts files up to 50 MB
+export const MAX_VIDEO_MB = supabase ? 50 : 200;
 
 export function isVideo(src) {
   if (!src) return false;
@@ -47,7 +50,11 @@ async function idbGet(key) {
 // Upload a video file. Resolves { url, localOnly }.
 export async function uploadVideo(file) {
   if (file.size > MAX_VIDEO_MB * 1024 * 1024) {
-    throw new Error(`Video is larger than ${MAX_VIDEO_MB} MB. Please export a smaller version.`);
+        throw new Error(`Video is larger than ${MAX_VIDEO_MB} MB. Please export a smaller version.`);
+  }
+  if (supabase) {
+    const path = await uploadToBucket(MEDIA_BUCKET, 'videos', file);
+    return { url: publicUrl(MEDIA_BUCKET, path), localOnly: false };
   }
   try {
     const res = await fetch('/api/upload', {
@@ -86,7 +93,12 @@ const MAX_EMBEDDED_RESUME_MB = 2;
 
 export async function uploadResume(file) {
   if (file.size > MAX_RESUME_MB * 1024 * 1024) {
-    throw new Error(`Resume is larger than ${MAX_RESUME_MB} MB. Please upload a smaller PDF.`);
+        throw new Error(`Resume is larger than ${MAX_RESUME_MB} MB. Please upload a smaller PDF.`);
+  }
+  if (supabase) {
+    // Private bucket: only admins can open it (see getResumeUrl)
+    const path = await uploadToBucket(RESUME_BUCKET, 'applications', file);
+    return { name: file.name, bucket: RESUME_BUCKET, path };
   }
   try {
     const res = await fetch('/api/upload', {
@@ -112,4 +124,15 @@ export async function uploadResume(file) {
     reader.readAsDataURL(file);
   });
   return { name: file.name, url };
+}
+
+// Link to open an applicant's resume. Private Supabase files get a short-lived signed link.
+export async function getResumeUrl(resume) {
+  if (!resume) return null;
+  if (resume.bucket && resume.path && supabase) {
+    const { data, error } = await supabase.storage.from(resume.bucket).createSignedUrl(resume.path, 60 * 10);
+    if (error) throw new Error(error.message);
+    return data.signedUrl;
+  }
+  return resume.url || null;
 }

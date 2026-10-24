@@ -25,3 +25,8 @@ dist-ssr
 
 # Media uploaded through the admin portal (lives on the server)
 server/uploads/
+
+# Local environment settings (Supabase keys)
+.env
+.env.*
+!.env.example

@@ -1,3 +1,5 @@
+import { supabase, uploadToBucket, publicUrl, MEDIA_BUCKET } from '../lib/supabase';
+
 // Resize uploaded photos (max 1200px, JPEG) so they stay small enough to store with the site data
 export function compressImage(file, maxSize = 1200, quality = 0.82) {
   return new Promise((resolve, reject) => {
@@ -31,4 +33,15 @@ export function canLoadImage(url) {
     img.onerror = () => resolve(false);
     img.src = url;
   });
+}
+
+// Compress, then store: Supabase Storage when configured (returns a public URL),
+// otherwise the compressed image is embedded as a data URL.
+export async function uploadImage(file) {
+  const dataUrl = await compressImage(file);
+  if (!supabase) return dataUrl;
+  const blob = await (await fetch(dataUrl)).blob();
+  const jpg = new File([blob], (file.name || 'image').replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
+  const path = await uploadToBucket(MEDIA_BUCKET, 'images', jpg, 'image/jpeg');
+  return publicUrl(MEDIA_BUCKET, path);
 }
