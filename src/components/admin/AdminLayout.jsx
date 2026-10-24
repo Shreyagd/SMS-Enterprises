@@ -26,7 +26,7 @@ import AdminCareers from './AdminCareers';
 import AdminSettings from './AdminSettings';
 
 export default function AdminLayout({ onExitAdmin }) {
-  const { adminUser, logoutAdmin, quotes, messages, settings, applications } = useData();
+  const { adminUser, logoutAdmin, quotes, messages, settings, applications, usingSupabase } = useData();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -140,6 +140,17 @@ export default function AdminLayout({ onExitAdmin }) {
           </div>
 
           <div className="header-right">
+            {/* Where admin changes are saved: online for everyone, or only in this browser */}
+            <div
+              className={`storage-pill ${usingSupabase ? 'storage-online' : 'storage-local'}`}
+              title={usingSupabase
+                ? 'Changes are saved to Supabase and visible to every visitor.'
+                : 'Supabase is not connected: changes are saved in this browser only. Check the VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY settings and redeploy.'}
+            >
+              <span className="storage-dot" />
+              <span className="notification-text">{usingSupabase ? 'Saving online' : 'Saving in this browser only'}</span>
+            </div>
+
             <div className="header-notification-pill">
               <Bell size={16} />
               <span className="notification-text">{newQuotes + unreadMessages} pending</span>
@@ -354,6 +365,33 @@ export default function AdminLayout({ onExitAdmin }) {
           font-size: 1.25rem;
           color: #0b1a30;
           line-height: 1.1;
+        }
+        .storage-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 6px 12px;
+          border-radius: 999px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          border: 1px solid;
+          white-space: nowrap;
+        }
+        .storage-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: currentColor;
+        }
+        .storage-online {
+          color: #15803d;
+          background: #f0fdf4;
+          border-color: rgba(22, 163, 74, 0.3);
+        }
+        .storage-local {
+          color: #b45309;
+          background: #fffbeb;
+          border-color: #fcd34d;
         }
         .header-right {
           display: flex;
