@@ -147,11 +147,14 @@ function PageEditor() {
             { key: 'location', label: 'Location' },
             { key: 'type', label: 'Type (Full-time, Part-time, Internship…)' },
             { key: 'experience', label: 'Experience required' },
-            { key: 'description', label: 'Short description', multiline: true }
+            { key: 'description', label: 'Description', multiline: true },
+            { key: 'shortDescription', label: 'Short description', multiline: true },
+            { key: 'highlights', label: 'Key highlights (bullet points)', multiline: true, hint: 'One per line' }
           ]}
-          newItem={{ title: 'New position', department: '', location: 'Bengaluru', type: 'Full-time', experience: '', description: '' }}
+          newItem={{ title: 'New position', department: '', location: 'Bengaluru', type: 'Full-time', experience: '', description: '', shortDescription: '', highlights: '' }}
           addLabel="Add opening"
           itemLabel="Opening"
+          renderItem={({ item }) => item.title || 'New position'}
         />
         {field('openings', 'emptyText', 'Message when there are no openings', { multiline: true })}
       </Section>

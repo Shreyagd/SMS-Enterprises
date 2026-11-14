@@ -41,9 +41,51 @@ export const DEFAULT_CAREERS_CONTENT = {
     title: 'Open positions',
     emptyText: 'There are no open positions right now, but we are always happy to hear from good people. Send us a general application below.',
     items: [
-      { title: 'Machine Operator – Blown Film Extrusion', department: 'Production', location: 'Bengaluru', type: 'Full-time', experience: '1–4 years', description: 'Run and monitor multi-layer blown film lines, maintain gauge and quality, and follow shift safety practices.' },
-      { title: 'Quality Control Executive', department: 'Quality', location: 'Bengaluru', type: 'Full-time', experience: '1–3 years', description: 'Test film thickness, tensile strength and seal quality; maintain QC records and inspect finished rolls before dispatch.' },
-      { title: 'Sales Executive – Industrial Packaging', department: 'Sales', location: 'Bengaluru / Field', type: 'Full-time', experience: '2–5 years', description: 'Develop B2B customers for stretch, shrink and laminated films; prepare quotations and follow up on orders.' }
+      {
+        title: 'Machine Operator – Blown Film Extrusion',
+        department: 'Production',
+        location: 'Bengaluru',
+        type: 'Full-time',
+        experience: '1–4 years',
+        description: 'Run and monitor multi-layer blown film lines, maintain gauge and quality, and follow shift safety practices.',
+        shortDescription: 'Operate and maintain our multi-layer blown film extrusion lines to produce high-quality packaging films.',
+        highlights: [
+          'Hands-on operation of modern extrusion equipment',
+          'Monitor film quality (thickness, gauge, optical properties)',
+          'Follow safety protocols and maintain clean work area',
+          'Shift-based role with overtime opportunities'
+        ]
+      },
+      {
+        title: 'Quality Control Executive',
+        department: 'Quality',
+        location: 'Bengaluru',
+        type: 'Full-time',
+        experience: '1–3 years',
+        description: 'Test film thickness, tensile strength and seal quality; maintain QC records and inspect finished rolls before dispatch.',
+        shortDescription: 'Ensure our packaging films meet the highest quality standards through rigorous testing and inspection.',
+        highlights: [
+          'Perform thickness, tensile strength, and seal integrity tests',
+          'Maintain detailed QC records and test reports',
+          'Inspect finished rolls before dispatch',
+          'Work with production to resolve quality issues'
+        ]
+      },
+      {
+        title: 'Sales Executive – Industrial Packaging',
+        department: 'Sales',
+        location: 'Bengaluru / Field',
+        type: 'Full-time',
+        experience: '2–5 years',
+        description: 'Develop B2B customers for stretch, shrink and laminated films; prepare quotations and follow up on orders.',
+        shortDescription: 'Drive growth by acquiring new B2B customers for our industrial packaging film portfolio.',
+        highlights: [
+          'Identify and approach potential customers in target industries',
+          'Prepare and present quotations for stretch/shrink/laminated films',
+          'Manage customer relationships and follow up on orders',
+          'Travel to client sites across the region'
+        ]
+      }
     ]
   },
   apply: {

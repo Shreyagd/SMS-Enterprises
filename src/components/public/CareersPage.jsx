@@ -140,6 +140,14 @@ export default function CareersPage() {
                         {job.type && <span><Clock size={14} /> {job.type}</span>}
                         {job.experience && <span><GraduationCap size={14} /> {job.experience}</span>}
                       </div>
+                      {job.shortDescription && <p className="careers-job-short-desc">{job.shortDescription}</p>}
+                      {job.highlights && (
+                        <ul className="careers-job-highlights">
+                          {job.highlights.split('\n').filter(Boolean).map((item, idx) => (
+                            <li key={idx}>{item.trim()}</li>
+                          ))}
+                        </ul>
+                      )}
                       {job.description && <p>{job.description}</p>}
                     </div>
                     <button className="btn btn-primary" onClick={() => applyFor(job.title)}>APPLY NOW</button>
@@ -263,6 +271,10 @@ export default function CareersPage() {
         .careers-job-meta svg { color: var(--primary-green); }
         .careers-job p { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; }
         .careers-job .btn { flex-shrink: 0; }
+        .careers-job-short-desc { font-size: 0.95rem; color: var(--text-main); line-height: 1.6; margin: 8px 0 12px; font-weight: 500; }
+        .careers-job-highlights { list-style: none; padding: 0; margin: 8px 0 12px; padding-left: 20px; }
+        .careers-job-highlights li { font-size: 0.9rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 6px; position: relative; }
+        .careers-job-highlights li::before { content: '•'; color: var(--primary-green); font-weight: bold; position: absolute; left: -20px; top: 0; }
         .careers-empty { max-width: 720px; margin: 0 auto; text-align: center; color: var(--text-muted); background: #fff; border: 1px dashed var(--border-light); border-radius: var(--radius-lg); padding: 32px; }
 
         .careers-apply { scroll-margin-top: 80px; }
