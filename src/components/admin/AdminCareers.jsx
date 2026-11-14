@@ -161,6 +161,28 @@ function PageEditor() {
         {field('hero', 'subtitle', 'Subtitle', { multiline: true })}
       </Section>
 
+      <Section title="Short description" description="Brief text shown below the hero, before the highlights." {...sectionProps('shortDescription')}>
+        <div className="hc-grid-2">
+          {field('shortDescription', 'title', 'Title')}
+          {field('shortDescription', 'text', 'Text', { multiline: true })}
+        </div>
+      </Section>
+
+      <Section title="Key highlights" description="Bullet-point list shown after the short description." {...sectionProps('highlights')}>
+        <div className="hc-grid-2">
+          {field('highlights', 'title', 'Title')}
+        </div>
+        <ListEditor
+          items={draft.highlights.items}
+          onChange={v => set('highlights', 'items', v)}
+          fields={[{ key: 'item', label: 'Bullet point', multiline: true }]}
+          newItem={{ item: '' }}
+          addLabel="Add highlight"
+          itemLabel="Highlight"
+          renderItem={({ item, index }) => item.item || `#${index + 1}`}
+        />
+      </Section>
+
       <Section title="Why work with us" description="Intro text and benefit cards." {...sectionProps('intro')}>
         <div className="hc-grid-2">
           {field('intro', 'badge', 'Small green label')}

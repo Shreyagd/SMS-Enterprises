@@ -10,7 +10,7 @@ const emptyForm = { name: '', email: '', phone: '', position: GENERAL, experienc
 
 export default function CareersPage() {
   const { careersContent, submitApplication, settings, showToast } = useData();
-  const { hero, intro, openings, apply } = careersContent;
+  const { hero, shortDescription, highlights, intro, openings, apply } = careersContent;
   const shown = (section) => section.visible !== false;
   const openingsList = shown(openings) ? openings.items.filter(o => o.title) : [];
 
@@ -68,6 +68,32 @@ export default function CareersPage() {
           )}
         </div>
       </section>
+
+      {shown(shortDescription) && (
+        <section className="section careers-short-description">
+          <div className="container">
+            <div className="careers-short-desc-content">
+              {shortDescription.title && <h3>{shortDescription.title}</h3>}
+              {shortDescription.text && <p>{shortDescription.text}</p>}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {shown(highlights) && highlights.items?.length > 0 && (
+        <section className="section careers-highlights">
+          <div className="container">
+            <div className="careers-highlights-content">
+              {highlights.title && <h3>{highlights.title}</h3>}
+              <ul className="careers-bullet-list">
+                {highlights.items.map((item, i) => (
+                  <li key={i}>{item.item || item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
 
       {shown(intro) && (
         <section className="section careers-intro">
@@ -216,6 +242,18 @@ export default function CareersPage() {
         .careers-perk h4 { font-size: 1.05rem; margin-bottom: 6px; }
         .careers-perk p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
 
+        .careers-short-description { background: var(--bg-alt); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light); padding: 40px 0; }
+        .careers-short-desc-content { max-width: 800px; margin: 0 auto; text-align: center; }
+        .careers-short-desc-content h3 { font-size: 1.5rem; margin-bottom: 12px; color: var(--text-main); }
+        .careers-short-desc-content p { font-size: 1.05rem; color: var(--text-muted); line-height: 1.7; }
+
+        .careers-highlights { background: #fff; padding: 48px 0; }
+        .careers-highlights-content { max-width: 800px; margin: 0 auto; }
+        .careers-highlights-content h3 { font-size: 1.5rem; text-align: center; margin-bottom: 24px; color: var(--text-main); }
+        .careers-bullet-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 24px; }
+        .careers-bullet-list li { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; background: var(--bg-alt); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--text-main); line-height: 1.5; position: relative; }
+        .careers-bullet-list li::before { content: ''; width: 8px; height: 8px; background: var(--primary-green); border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+
         .careers-jobs { display: flex; flex-direction: column; gap: 16px; max-width: 960px; margin: 0 auto; }
         .careers-job { display: flex; align-items: center; justify-content: space-between; gap: 24px; background: #fff; border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 22px 26px; transition: var(--transition); }
         .careers-job:hover { border-color: rgba(22, 163, 74, 0.4); box-shadow: var(--shadow-md); }
@@ -254,6 +292,9 @@ export default function CareersPage() {
           .careers-hero { padding: 48px 0 44px; }
           .careers-hero h1 { font-size: 2rem; }
           .careers-perks { grid-template-columns: 1fr; }
+          .careers-short-desc-content h3 { font-size: 1.3rem; }
+          .careers-highlights-content h3 { font-size: 1.3rem; }
+          .careers-bullet-list { grid-template-columns: 1fr; }
           .careers-job { flex-direction: column; align-items: flex-start; padding: 18px; }
           .careers-job .btn { width: 100%; }
           .careers-form-row { grid-template-columns: 1fr; }

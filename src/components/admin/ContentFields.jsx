@@ -121,7 +121,7 @@ export function ImageField({ label, value, onChange, accept = 'both' }) {
 }
 
 // Editable list of items (feature badges, checklist points, cards, stats)
-export function ListEditor({ items, onChange, fields, newItem, addLabel, itemLabel }) {
+export function ListEditor({ items, onChange, fields, newItem, addLabel, itemLabel, renderItem }) {
   const update = (i, key, val) => onChange(items.map((it, j) => (j === i ? { ...it, [key]: val } : it)));
   const remove = (i) => onChange(items.filter((_, j) => j !== i));
   const move = (i, d) => {
@@ -130,12 +130,14 @@ export function ListEditor({ items, onChange, fields, newItem, addLabel, itemLab
     onChange(next);
   };
 
+  const getItemLabel = (item, i) => renderItem ? renderItem({ item, index: i }) : `${itemLabel} ${i + 1}`;
+
   return (
     <div className="hc-list">
       {items.map((item, i) => (
         <div key={i} className="hc-list-item">
           <div className="hc-list-head">
-            <strong>{itemLabel} {i + 1}</strong>
+            <strong>{getItemLabel(item, i)}</strong>
             <div className="hc-list-tools">
               <button type="button" title="Move up" disabled={i === 0} onClick={() => move(i, -1)}><ArrowUp size={14} /></button>
               <button type="button" title="Move down" disabled={i === items.length - 1} onClick={() => move(i, 1)}><ArrowDown size={14} /></button>

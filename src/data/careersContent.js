@@ -6,6 +6,23 @@ export const DEFAULT_CAREERS_CONTENT = {
     title: 'CAREERS',
     subtitle: 'Build your career with SMS ENTERPRISES — help us package India’s products for the world.'
   },
+  shortDescription: {
+    visible: true,
+    title: 'About this role',
+    text: 'Join our manufacturing team and contribute to producing high-quality packaging films that protect products across India. This is a hands-on role where you will see the direct impact of your work every day.'
+  },
+  highlights: {
+    visible: true,
+    title: 'Key highlights',
+    items: [
+      'Competitive salary with annual increments',
+      'Comprehensive health and safety training',
+      'Opportunity to work with modern extrusion technology',
+      'Clear career progression path from operator to supervisor',
+      'PF/ESI benefits and performance bonuses',
+      'Supportive team culture with experienced mentors'
+    ]
+  },
   intro: {
     visible: true,
     badge: 'WHY WORK WITH US',
