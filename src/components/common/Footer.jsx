@@ -5,72 +5,69 @@ import { useData } from '../../context/DataContext';
 const FOOTER_PRODUCTS = ['ldpe-shrink-film', 'industrial-stretch-film', 'vci-film', 'silage-stretch-film', 'agricultural-mulch-film', 'multi-layer-laminated-pouches'];
 
 export default function Footer({ setActivePage, onOpenAdmin, onSelectProduct }) {
-  const { settings, products } = useData();
+  const { settings, products, footerContent } = useData();
+
+  const brand = footerContent.brand;
+  const quickLinks = footerContent.quickLinks;
+  const productLines = footerContent.productLines;
+  const contact = footerContent.contact;
+  const copyright = footerContent.copyright;
+
+  const currentYear = new Date().getFullYear();
+  const copyrightText = copyright.text
+    .replace('{year}', currentYear)
+    .replace('{companyName}', settings.companyName);
 
   return (
     <footer className="site-footer">
       <div className="container footer-main">
         <div className="footer-grid">
           {/* Column 1: Company Profile */}
+          {brand.visible && (
           <div className="footer-col brand-col">
             <div className="footer-brand">
-              <img 
-                src="/images/sms_logo.jpg" 
-                alt="SMS Enterprises Logo" 
+              <img
+                src="/images/sms_logo.jpg"
+                alt="SMS Enterprises Logo"
                 className="footer-logo-img"
               />
               <div>
                 <h3 className="footer-company-name">{settings.companyName}</h3>
-                <span className="footer-tagline">Packaging Solutions</span>
+                <span className="footer-tagline">{brand.tagline}</span>
               </div>
             </div>
 
             <p className="footer-bio">
-              Manufacturer and global exporter of high-performance stretch films, LDPE shrink packaging, and BOPP multi-layer barrier solutions. Driven by innovation, quality, and sustainable manufacturing practices.
+              {brand.bio}
             </p>
 
             <div className="footer-pill-badge">
               <ShieldCheck size={16} className="text-green" />
-              <span>GSTIN: <strong>{settings.gstin}</strong></span>
+              <span>{brand.gstinLabel} <strong>{settings.gstin}</strong></span>
             </div>
           </div>
+          )}
 
           {/* Column 2: Quick Links */}
+          {quickLinks.visible && (
           <div className="footer-col">
-            <h4 className="footer-heading">Quick Links</h4>
+            <h4 className="footer-heading">{quickLinks.heading}</h4>
             <ul className="footer-link-list">
-              <li>
-                <button onClick={() => { setActivePage('home'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Home
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setActivePage('products'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Our Products
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setActivePage('about'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> About Us
-                </button>
-              </li>
-                            <li>
-                <button onClick={() => { setActivePage('careers'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Careers
-                </button>
-              </li>
-              <li>
-                <button onClick={() => { setActivePage('contact'); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
-                  <ChevronRight size={14} /> Contact Us
-                </button>
-              </li>
-              {/* Admin portal link removed */}
+              {quickLinks.items.map((item, index) => (
+                <li key={index}>
+                  <button onClick={() => { setActivePage(item.page); window.scrollTo({ top: 0, behavior: 'smooth'}); }}>
+                    <ChevronRight size={14} /> {item.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
+          )}
 
           {/* Column 3: Packaging Solutions */}
+          {productLines.visible && (
           <div className="footer-col">
-            <h4 className="footer-heading">Product Lines</h4>
+            <h4 className="footer-heading">{productLines.heading}</h4>
             <ul className="footer-link-list">
               {FOOTER_PRODUCTS.map(slug => {
                 const prod = products.find(p => p.slug === slug);
@@ -85,10 +82,12 @@ export default function Footer({ setActivePage, onOpenAdmin, onSelectProduct }) 
               })}
             </ul>
           </div>
+          )}
 
           {/* Column 4: Contact & Factory Unit */}
+          {contact.visible && (
           <div className="footer-col contact-col">
-            <h4 className="footer-heading">Registered Unit</h4>
+            <h4 className="footer-heading">{contact.heading}</h4>
             <div className="footer-contact-items">
               <div className="contact-item">
                 <MapPin size={18} className="contact-icon" />
@@ -108,20 +107,23 @@ export default function Footer({ setActivePage, onOpenAdmin, onSelectProduct }) 
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
       {/* Admin Access & Copyright Bar */}
       <div className="footer-bottom-bar">
         <div className="container bottom-container">
+          {copyright.visible && (
           <div className="copyright-text">
-            © {new Date().getFullYear()} {settings.companyName}. All Rights Reserved.
+            {copyrightText}
           </div>
+          )}
 
           {/* Admin Access Trigger */}
-          <button 
+          <button
             type="button"
-            className="footer-admin-trigger" 
+            className="footer-admin-trigger"
             title="SMS Enterprises Admin Operations Portal"
             onClick={onOpenAdmin}
           >

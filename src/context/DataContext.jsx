@@ -4,6 +4,8 @@ import { PRODUCTS } from '../data/products';
 import { DEFAULT_HOME_CONTENT, mergeHomeContent } from '../data/homeContent';
 import { DEFAULT_ABOUT_CONTENT, mergeAboutContent } from '../data/aboutContent';
 import { DEFAULT_CAREERS_CONTENT, mergeCareersContent } from '../data/careersContent';
+import { DEFAULT_BANNER_CONTENT, mergeBannerContent } from '../data/bannerContent';
+import { DEFAULT_FOOTER_CONTENT, mergeFooterContent } from '../data/footerContent';
 
 const DataContext = createContext();
 
@@ -197,8 +199,15 @@ export function DataProvider({ children }) {
     const saved = localStorage.getItem('sms_products_v3');
     if (saved) {
       let parsed = JSON.parse(saved);
-      // Migrate 'Agri' to 'Agriculture'
-      return parsed.map(p => p.category === 'Agri' ? { ...p, category: 'Agriculture' } : p);
+      // Migrate 'Agri' to 'Agriculture' and ensure all products have sections array
+      return parsed.map(p => {
+        let product = p.category === 'Agri' ? { ...p, category: 'Agriculture' } : p;
+        // Ensure sections array exists for products saved before sections feature
+        if (!product.sections || !Array.isArray(product.sections)) {
+          product = { ...product, sections: [] };
+        }
+        return product;
+      });
     }
     return DEFAULT_PRODUCTS;
   });
@@ -227,6 +236,24 @@ export function DataProvider({ children }) {
       return saved ? mergeCareersContent(JSON.parse(saved)) : DEFAULT_CAREERS_CONTENT;
     } catch {
       return DEFAULT_CAREERS_CONTENT;
+    }
+  });
+
+  const [bannerContent, setBannerContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sms_banners');
+      return saved ? mergeBannerContent(JSON.parse(saved)) : DEFAULT_BANNER_CONTENT;
+    } catch {
+      return DEFAULT_BANNER_CONTENT;
+    }
+  });
+
+  const [footerContent, setFooterContent] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sms_footer');
+      return saved ? mergeFooterContent(JSON.parse(saved)) : DEFAULT_FOOTER_CONTENT;
+    } catch {
+      return DEFAULT_FOOTER_CONTENT;
     }
   });
 
@@ -277,7 +304,7 @@ export function DataProvider({ children }) {
 
   // Latest state for async work (seeding Supabase on first admin login)
   const stateRef = useRef();
-  stateRef.current = { settings, products, homeContent, aboutContent, careersContent, gallery };
+  stateRef.current = { settings, products, homeContent, aboutContent, careersContent, gallery, footerContent };
 
   // Load site content: Supabase when configured, otherwise the local Node server if running
   useEffect(() => {
@@ -316,6 +343,7 @@ export function DataProvider({ children }) {
       if (c.about) setAboutContent(mergeAboutContent(c.about));
       if (c.careers) setCareersContent(mergeCareersContent(c.careers));
       if (c.gallery) setGallery(c.gallery);
+      if (c.footer) setFooterContent(mergeFooterContent(c.footer));
     });
 
     supabase.auth.getSession().then(({ data }) => {
@@ -353,7 +381,8 @@ export function DataProvider({ children }) {
           home: cur.homeContent,
           about: cur.aboutContent,
           careers: cur.careersContent,
-          gallery: cur.gallery
+          gallery: cur.gallery,
+          footer: cur.footerContent
         };
         const missing = Object.keys(initial).filter(key => !existing.has(key));
         for (const key of missing) await remoteSaveContent(key, initial[key]);
@@ -413,6 +442,22 @@ export function DataProvider({ children }) {
       if (!supabase) showToast('Browser storage is full — could not save the Careers page.', 'error');
     }
   }, [careersContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_banners', JSON.stringify(bannerContent));
+    } catch {
+      if (!supabase) showToast('Browser storage is full — could not save banner content.', 'error');
+    }
+  }, [bannerContent]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sms_footer', JSON.stringify(footerContent));
+    } catch {
+      if (!supabase) showToast('Browser storage is full — could not save footer content.', 'error');
+    }
+  }, [footerContent]);
 
   useEffect(() => {
     if (supabase) return;
@@ -563,11 +608,34 @@ export function DataProvider({ children }) {
     }
   };
 
+  const replaceAllProducts = async (newProducts) => {
+    setProducts(newProducts);
+    if (await saveContent('products', newProducts, () => jsonRequest('/api/products', 'PUT', newProducts))) {
+      showToast('Product catalog replaced successfully!', 'success');
+    }
+  };
+
   // ── Careers ──
   const updateCareersContent = async (content) => {
     setCareersContent(content);
     if (await saveContent('careers', content, () => jsonRequest('/api/careers', 'PUT', content))) {
       showToast('Careers page updated!', 'success');
+    }
+  };
+
+  // ── Banners ──
+  const updateBannerContent = async (content) => {
+    setBannerContent(content);
+    if (await saveContent('banners', content, () => jsonRequest('/api/banners', 'PUT', content))) {
+      showToast('Banner content updated!', 'success');
+    }
+  };
+
+  // ── Footer ──
+  const updateFooterContent = async (content) => {
+    setFooterContent(content);
+    if (await saveContent('footer', content, () => jsonRequest('/api/footer', 'PUT', content))) {
+      showToast('Footer content updated!', 'success');
     }
   };
 
@@ -708,6 +776,7 @@ export function DataProvider({ children }) {
       deleteMessage,
       saveProduct,
       deleteProduct,
+      replaceAllProducts,
       updateSettings,
       homeContent,
       updateHomeContent,
@@ -715,6 +784,10 @@ export function DataProvider({ children }) {
       updateAboutContent,
       careersContent,
       updateCareersContent,
+      bannerContent,
+      updateBannerContent,
+      footerContent,
+      updateFooterContent,
       applications,
       submitApplication,
       updateApplication,

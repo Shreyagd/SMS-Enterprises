@@ -156,12 +156,12 @@ export function ListEditor({ items, onChange, fields, newItem, addLabel, itemLab
   );
 }
 
-export function Section({ title, description, visible, onToggle, children }) {
+export function Section({ title, description, visible, onToggle, children, className }) {
   return (
-    <section className={`hc-section ${visible ? '' : 'hc-hidden'}`}>
+    <section className={`hc-section ${visible ? '' : 'hc-hidden'} ${className || ''}`}>
       <div className="hc-section-head">
         <div>
-          <h3>{title}</h3>
+          <h3 dangerouslySetInnerHTML={{ __html: title }} />
           <p>{description}</p>
         </div>
         {onToggle && (
@@ -215,6 +215,120 @@ export function EditorStyles() {
         .hc-list-tools button { width: 28px; height: 28px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #475569; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .hc-list-tools button:disabled { opacity: 0.35; cursor: default; }
         .hc-list-tools .hc-danger:hover { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
+
+        /* Banner page specific styles */
+        .banner-page-nav {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 16px 0 24px;
+          padding: 16px;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: var(--radius-lg);
+        }
+        .banner-nav-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          border-radius: 999px;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          font-family: var(--font-heading);
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #475569;
+          cursor: pointer;
+          transition: var(--transition);
+          white-space: nowrap;
+        }
+        .banner-nav-btn:hover {
+          background-color: #f1f5f9;
+          color: #0f172a;
+          border-color: #cbd5e1;
+          transform: translateY(-1px);
+          box-shadow: var(--shadow-sm);
+        }
+        .banner-nav-btn svg {
+          flex-shrink: 0;
+        }
+
+        .banners-main {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .banner-page-group {
+          background: #fff;
+          border: 1px solid #e2e8f0;
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+        }
+        .banner-page-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px 20px;
+          background: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .banner-page-header svg {
+          color: var(--primary-green);
+        }
+        .banner-page-header h3 {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0;
+        }
+        .banner-count {
+          margin-left: auto;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #94a3b8;
+          background: #e2e8f0;
+          padding: 4px 12px;
+          border-radius: 999px;
+        }
+        .banner-section {
+          border: none;
+          border-bottom: 1px solid #edf2f7;
+          border-radius: 0;
+          margin-bottom: 0;
+        }
+        .banner-section:last-child {
+          border-bottom: none;
+        }
+        .banner-subsection {
+          background: #f0fdf4;
+          border: 1px solid rgba(22, 163, 74, 0.2);
+          border-radius: var(--radius-md);
+          padding: 16px;
+          margin-bottom: 16px;
+        }
+        .banner-subsection h5 {
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: #15803d;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 12px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid rgba(22, 163, 74, 0.2);
+        }
+        .banner-info-notice {
+          background: #fffbeb;
+          border: 1px solid #fcd34d;
+          border-radius: var(--radius-md);
+          padding: 12px 16px;
+          margin-bottom: 16px;
+          font-size: 0.85rem;
+          color: #92400e;
+        }
+        .banner-info-notice strong {
+          color: #b45309;
+        }
         @media (max-width: 700px) {
           .hc-grid-2, .hc-grid-3 { grid-template-columns: 1fr; }
           .hc-section-head { flex-direction: column; align-items: flex-start; }

@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { 
-    LayoutDashboard, 
-    Home, 
-  Info, 
-  Briefcase,   
-  FileText, 
-  Mail, 
-  Layers, 
-  Settings, 
-  LogOut, 
-  Globe, 
-  ShieldCheck, 
-  Menu, 
+import {
+    LayoutDashboard,
+    Home,
+  Info,
+  Briefcase,
+  FileText,
+  Mail,
+  Layers,
+  Settings,
+  LogOut,
+  Globe,
+  ShieldCheck,
+  Menu,
   X,
-  Bell
+  Bell,
+  Image,
+  Edit3
 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import AdminDashboard from './AdminDashboard';
@@ -24,6 +26,8 @@ import AdminHome from './AdminHome';
 import AdminAbout from './AdminAbout';
 import AdminCareers from './AdminCareers';
 import AdminSettings from './AdminSettings';
+import AdminBanners from './AdminBanners';
+import AdminFooter from './AdminFooter';
 
 export default function AdminLayout({ onExitAdmin }) {
   const { adminUser, logoutAdmin, quotes, messages, settings, applications, usingSupabase } = useData();
@@ -36,12 +40,14 @@ export default function AdminLayout({ onExitAdmin }) {
 
   const navTabs = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+    { id: 'banners', label: 'Banners', icon: <Image size={18} /> },
     { id: 'quotes', label: 'RFQ Quotes', icon: <FileText size={18} />, badge: newQuotes },
     { id: 'messages', label: 'Inquiries Inbox', icon: <Mail size={18} />, badge: unreadMessages },
     { id: 'home', label: 'Home Page', icon: <Home size={18} /> },
     { id: 'about', label: 'About Us Page', icon: <Info size={18} /> },
     { id: 'careers', label: 'Careers', icon: <Briefcase size={18} />, badge: newApplications },
     { id: 'products', label: 'Products Catalog', icon: <Layers size={18} /> },
+    { id: 'footer', label: 'Footer', icon: <Settings size={18} /> },
     { id: 'settings', label: 'Settings & Security', icon: <Settings size={18} /> }
   ];
 
@@ -165,12 +171,14 @@ export default function AdminLayout({ onExitAdmin }) {
         {/* Tab Body */}
         <main className="admin-content-body">
           {activeTab === 'dashboard' && <AdminDashboard onNavigateTab={setActiveTab} />}
+          {activeTab === 'banners' && <AdminBanners />}
           {activeTab === 'quotes' && <AdminQuotes />}
           {activeTab === 'messages' && <AdminMessages />}
           {activeTab === 'home' && <AdminHome />}
           {activeTab === 'about' && <AdminAbout />}
           {activeTab === 'careers' && <AdminCareers />}
           {activeTab === 'products' && <AdminProducts />}
+          {activeTab === 'footer' && <AdminFooter />}
           {activeTab === 'settings' && <AdminSettings />}
         </main>
       </div>
@@ -192,6 +200,24 @@ export default function AdminLayout({ onExitAdmin }) {
           flex-shrink: 0;
           border-right: 1px solid rgba(255, 255, 255, 0.08);
           z-index: 100;
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom: 0;
+          height: 100vh;
+        }
+        .admin-sidebar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .admin-sidebar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .admin-sidebar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 4px;
+        }
+        .admin-sidebar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.25);
         }
         .sidebar-top {
           padding: 24px 20px;
@@ -199,6 +225,7 @@ export default function AdminLayout({ onExitAdmin }) {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-shrink: 0;
         }
         .admin-brand {
           display: flex;
@@ -236,6 +263,20 @@ export default function AdminLayout({ onExitAdmin }) {
           flex-direction: column;
           gap: 6px;
           flex-grow: 1;
+          overflow-y: auto;
+        }
+        .admin-nav-menu::-webkit-scrollbar {
+          width: 4px;
+        }
+        .admin-nav-menu::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .admin-nav-menu::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 4px;
+        }
+        .admin-nav-menu::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.25);
         }
         .admin-nav-item {
           display: flex;
@@ -278,6 +319,7 @@ export default function AdminLayout({ onExitAdmin }) {
           padding: 20px;
           border-top: 1px solid rgba(255, 255, 255, 0.08);
           background-color: #050d18;
+          flex-shrink: 0;
         }
         .user-profile-widget {
           display: flex;
@@ -332,6 +374,8 @@ export default function AdminLayout({ onExitAdmin }) {
           display: flex;
           flex-direction: column;
           min-width: 0;
+          margin-left: 270px;
+          width: calc(100% - 270px);
         }
         .admin-header {
           height: 70px;
@@ -439,6 +483,10 @@ export default function AdminLayout({ onExitAdmin }) {
           }
           .mobile-menu-trigger {
             display: block;
+          }
+          .admin-main-panel {
+            margin-left: 0;
+            width: 100%;
           }
           .admin-header {
             padding: 0 16px;

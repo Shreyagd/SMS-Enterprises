@@ -1,20 +1,574 @@
-import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload, Video, Archive, ArchiveRestore } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Plus, Edit2, Trash2, X, Save, Layers, CheckCircle, Upload, Video, Archive, ArchiveRestore, ChevronUp, ChevronDown, GripVertical, Trash, Type, List, Table, Move, Eye, EyeOff, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useData } from '../../context/DataContext';
-import { PRODUCT_CATEGORIES } from '../../data/products';
+import { PRODUCT_CATEGORIES, PRODUCTS as DEFAULT_PRODUCTS } from '../../data/products';
 import { uploadImage, canLoadImage } from '../../utils/images';
 import { uploadVideo, isVideo } from '../../utils/media';
 import Media from '../common/Media';
 
+// ───────────────────────── Sections Editor ─────────────────────────
+function SectionsEditor({ sections, onChange }) {
+  const [expandedIndex, setExpandedIndex] = useState(null);
+
+  // Auto-detect section type from content structure
+  const getSectionType = (section) => {
+    if (section.type) return section.type;
+    const content = getSectionContent(section);
+    if (content && typeof content === 'object') {
+      if (content.head && content.rows) return 'table';
+      if (Array.isArray(content)) return 'list';
+    }
+    return 'text';
+  };
+
+  // Get content from section regardless of structure (table/list/text at root or in content)
+  const getSectionContent = (section) => {
+    if (section.content !== undefined) return section.content;
+    if (section.table) return section.table;
+    if (section.list) return section.list;
+    if (section.text) return section.text;
+    return [];
+  };
+
+  // Set content on section, normalizing to use 'content' property
+  const setSectionContent = (section, content) => {
+    return { ...section, content, table: undefined, list: undefined, text: undefined };
+  };
+
+  const addSection = (type = 'text') => {
+    const newSection = {
+      title: '',
+      type,
+      content: type === 'text' ? [''] : type === 'list' ? [''] : { head: ['Column 1', 'Column 2'], rows: [['', '']] }
+    };
+    onChange([...sections, newSection]);
+    setExpandedIndex(sections.length);
+  };
+
+  const removeSection = (index) => {
+    onChange(sections.filter((_, i) => i !== index));
+    if (expandedIndex === index) setExpandedIndex(null);
+    else if (expandedIndex > index) setExpandedIndex(expandedIndex - 1);
+  };
+
+  const moveSection = (fromIndex, toIndex) => {
+    const newSections = [...sections];
+    const [moved] = newSections.splice(fromIndex, 1);
+    newSections.splice(toIndex, 0, moved);
+    onChange(newSections);
+    if (expandedIndex === fromIndex) setExpandedIndex(toIndex);
+    else if (expandedIndex === toIndex) setExpandedIndex(fromIndex);
+    else if (expandedIndex > fromIndex && expandedIndex <= toIndex) setExpandedIndex(expandedIndex - 1);
+    else if (expandedIndex < fromIndex && expandedIndex >= toIndex) setExpandedIndex(expandedIndex + 1);
+  };
+
+  const updateSection = (index, updates) => {
+    onChange(sections.map((s, i) => i === index ? setSectionContent(s, { ...getSectionContent(s), ...updates }) : s));
+  };
+
+  const updateContent = (sectionIndex, content) => {
+    onChange(sections.map((s, i) => i === sectionIndex ? setSectionContent(s, content) : s));
+  };
+
+  // Text content handlers
+  const updateTextItem = (sectionIndex, itemIndex, value) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = [...content];
+    newContent[itemIndex] = value;
+    updateContent(sectionIndex, newContent);
+  };
+
+  const addTextItem = (sectionIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    updateContent(sectionIndex, [...content, '']);
+  };
+
+  const removeTextItem = (sectionIndex, itemIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    updateContent(sectionIndex, content.filter((_, i) => i !== itemIndex));
+  };
+
+  // List content handlers
+  const updateListItem = (sectionIndex, itemIndex, value) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = [...content];
+    newContent[itemIndex] = value;
+    updateContent(sectionIndex, newContent);
+  };
+
+  const addListItem = (sectionIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    updateContent(sectionIndex, [...content, '']);
+  };
+
+  const removeListItem = (sectionIndex, itemIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    updateContent(sectionIndex, content.filter((_, i) => i !== itemIndex));
+  };
+
+  // Table content handlers
+  const updateTableCell = (sectionIndex, rowIndex, colIndex, value) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = { ...content };
+    newContent.rows = newContent.rows.map((row, r) =>
+      r === rowIndex ? row.map((cell, c) => c === colIndex ? value : cell) : row
+    );
+    // Ensure head array matches row length
+    if (newContent.rows.length && newContent.rows[0].length > newContent.head.length) {
+      newContent.head = [...newContent.head, `Column ${newContent.head.length + 1}`];
+    }
+    updateContent(sectionIndex, newContent);
+  };
+
+  const updateTableHead = (sectionIndex, colIndex, value) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = { ...content };
+    newContent.head = newContent.head.map((h, i) => i === colIndex ? value : h);
+    updateContent(sectionIndex, newContent);
+  };
+
+  const addTableRow = (sectionIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = { ...content };
+    newContent.rows = [...newContent.rows, new Array(newContent.head.length).fill('')];
+    updateContent(sectionIndex, newContent);
+  };
+
+  const removeTableRow = (sectionIndex, rowIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = { ...content };
+    newContent.rows = newContent.rows.filter((_, i) => i !== rowIndex);
+    updateContent(sectionIndex, newContent);
+  };
+
+  const addTableColumn = (sectionIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = { ...content };
+    newContent.head = [...newContent.head, `Column ${newContent.head.length + 1}`];
+    newContent.rows = newContent.rows.map(row => [...row, '']);
+    updateContent(sectionIndex, newContent);
+  };
+
+  const removeTableColumn = (sectionIndex, colIndex) => {
+    const section = sections[sectionIndex];
+    const content = getSectionContent(section);
+    const newContent = { ...content };
+    newContent.head = newContent.head.filter((_, i) => i !== colIndex);
+    newContent.rows = newContent.rows.map(row => row.filter((_, i) => i !== colIndex));
+    updateContent(sectionIndex, newContent);
+  };
+
+  const typeLabels = { text: 'Text Paragraphs', list: 'Bullet List', table: 'Data Table' };
+  const typeIcons = { text: Type, list: List, table: Table };
+
+  const renderIcon = (type) => {
+    const Icon = typeIcons[type];
+    return <Icon size={14} />;
+  };
+
+  return (
+    <div className="sections-editor">
+      {sections.length === 0 && (
+        <div className="sections-empty">
+          <p>No sections added yet. Click a button below to add content to the product page.</p>
+          <div className="sections-add-buttons">
+            {['text', 'list', 'table'].map(type => (
+              <button
+                key={type}
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => addSection(type)}
+              >
+                {renderIcon(type)} Add {typeLabels[type]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {sections.map((section, index) => (
+        <div key={index} className="section-card">
+          <div className="section-card-header">
+            <button
+              type="button"
+              className="section-drag-handle"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                // Simple drag to reorder - click up/down buttons instead
+              }}
+              title="Drag to reorder"
+            >
+              <GripVertical size={16} />
+            </button>
+            <div className="section-title-input">
+              <input
+                type="text"
+                placeholder="Section Title (e.g. Technical Specifications)"
+                value={section.title}
+                onChange={(e) => updateSection(index, { title: e.target.value })}
+                className="form-input"
+              />
+            </div>
+            <div className="section-type-badge">{typeLabels[getSectionType(section)] || getSectionType(section)}</div>
+            <div className="section-actions">
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
+                title={expandedIndex === index ? 'Collapse' : 'Expand'}
+              >
+                {expandedIndex === index ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={() => moveSection(index, index - 1)}
+                disabled={index === 0}
+                title="Move Up"
+              >
+                <ChevronUp size={14} />
+              </button>
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={() => moveSection(index, index + 1)}
+                disabled={index === sections.length - 1}
+                title="Move Down"
+              >
+                <ChevronDown size={14} />
+              </button>
+              <button
+                type="button"
+                className="btn-icon danger"
+                onClick={() => removeSection(index)}
+                title="Delete Section"
+              >
+                <Trash size={14} />
+              </button>
+            </div>
+          </div>
+
+          {expandedIndex === index && (
+            <div className="section-card-body">
+              {getSectionType(section) === 'text' && (
+                <div className="section-content-editor">
+                  <div className="content-items">
+                    {getSectionContent(section).map((item, itemIndex) => (
+                      <div key={itemIndex} className="content-item">
+                        <textarea
+                          placeholder="Enter paragraph text..."
+                          value={item}
+                          onChange={(e) => updateTextItem(index, itemIndex, e.target.value)}
+                          rows={3}
+                          className="form-textarea"
+                        />
+                        <div className="item-actions">
+                          <button type="button" className="btn-icon" onClick={() => removeTextItem(index, itemIndex)} title="Remove">
+                            <Trash size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => addTextItem(index)}>
+                    <Plus size={14} /> Add Paragraph
+                  </button>
+                </div>
+              )}
+
+              {getSectionType(section) === 'list' && (
+                <div className="section-content-editor">
+                  <div className="content-items">
+                    {getSectionContent(section).map((item, itemIndex) => (
+                      <div key={itemIndex} className="content-item">
+                        <input
+                          type="text"
+                          placeholder="Enter list item (e.g. 'High Tensile Strength: 30+ MPa')"
+                          value={item}
+                          onChange={(e) => updateListItem(index, itemIndex, e.target.value)}
+                          className="form-input"
+                        />
+                        <div className="item-actions">
+                          <button type="button" className="btn-icon" onClick={() => removeListItem(index, itemIndex)} title="Remove">
+                            <Trash size={12} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={() => addListItem(index)}>
+                    <Plus size={14} /> Add List Item
+                  </button>
+                  <p className="img-help">Tip: Use format "Label: description" for bold label styling on the website.</p>
+                </div>
+              )}
+
+              {getSectionType(section) === 'table' && (
+                <div className="section-content-editor">
+                  <div className="table-editor">
+                    <div className="table-head-row">
+                      {getSectionContent(section).head.map((head, colIndex) => (
+                        <div key={colIndex} className="table-cell-wrapper">
+                          <input
+                            type="text"
+                            value={head}
+                            onChange={(e) => updateTableHead(index, colIndex, e.target.value)}
+                            className="form-input table-head-input"
+                            placeholder={`Column ${colIndex + 1}`}
+                          />
+                          {getSectionContent(section).head.length > 1 && (
+                            <button type="button" className="btn-icon danger" onClick={() => removeTableColumn(index, colIndex)} title="Remove Column">
+                              <Trash size={12} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button type="button" className="btn btn-secondary btn-sm table-add-col" onClick={() => addTableColumn(index)}>
+                        <Plus size={14} /> Add Column
+                      </button>
+                    </div>
+                    <div className="table-rows">
+                      {getSectionContent(section).rows.map((row, rowIndex) => (
+                        <div key={rowIndex} className="table-row">
+                          {row.map((cell, colIndex) => (
+                            <div key={colIndex} className="table-cell-wrapper">
+                              <input
+                                type="text"
+                                value={cell}
+                                onChange={(e) => updateTableCell(index, rowIndex, colIndex, e.target.value)}
+                                className="form-input table-cell-input"
+                                placeholder={`Row ${rowIndex + 1}, Col ${colIndex + 1}`}
+                              />
+                            </div>
+                          ))}
+                          <div className="table-row-actions">
+                            <button type="button" className="btn-icon" onClick={() => removeTableRow(index, rowIndex)} title="Remove Row">
+                              <Trash size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => addTableRow(index)}>
+                      <Plus size={14} /> Add Row
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {sections.length > 0 && (
+        <div className="sections-add-more">
+          <span>Add another section:</span>
+          <div className="sections-add-buttons">
+            {['text', 'list', 'table'].map(type => (
+              <button
+                key={`add-${type}`}
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => addSection(type)}
+              >
+                {renderIcon(type)} {typeLabels[type]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .sections-editor {
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-md);
+          background: #fafafa;
+          padding: 16px;
+        }
+        .sections-empty {
+          text-align: center;
+          padding: 32px;
+          color: #64748b;
+        }
+        .sections-add-buttons {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+        .section-card {
+          background: #fff;
+          border: 1px solid var(--border-light);
+          border-radius: var(--radius-md);
+          margin-bottom: 12px;
+          overflow: hidden;
+        }
+        .section-card-header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          background: #f8fafc;
+          border-bottom: 1px solid var(--border-light);
+        }
+        .section-drag-handle {
+          color: #94a3b8;
+          cursor: grab;
+          padding: 4px;
+          background: none;
+          border: none;
+        }
+        .section-drag-handle:hover {
+          color: var(--primary-green);
+        }
+        .section-title-input {
+          flex: 1;
+          min-width: 200px;
+        }
+        .section-type-badge {
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: var(--primary-green);
+          background: var(--green-bg);
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          text-transform: uppercase;
+        }
+        .section-actions {
+          display: flex;
+          gap: 4px;
+        }
+        .btn-icon {
+          width: 28px;
+          height: 28px;
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--border-light);
+          background: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: #64748b;
+          transition: all 0.2s;
+        }
+        .btn-icon:hover:not(:disabled) {
+          background: #f1f5f9;
+          color: var(--primary-green);
+        }
+        .btn-icon:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        .btn-icon.danger:hover {
+          background: #fef2f2;
+          color: #dc2626;
+          border-color: #fecaca;
+        }
+        .section-card-body {
+          padding: 16px;
+          animation: slideDown 0.2s ease;
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .content-items {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .content-item {
+          display: flex;
+          gap: 8px;
+          align-items: flex-start;
+        }
+        .content-item textarea,
+        .content-item input {
+          flex: 1;
+        }
+        .item-actions {
+          flex-shrink: 0;
+          margin-top: 4px;
+        }
+        .table-editor {
+          overflow-x: auto;
+        }
+        .table-head-row {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 12px;
+          flex-wrap: wrap;
+          align-items: flex-end;
+        }
+        .table-cell-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          min-width: 150px;
+        }
+        .table-head-input {
+          font-weight: 600;
+          background: #f0fdf4;
+        }
+        .table-add-col {
+          height: 38px;
+        }
+        .table-rows {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .table-row {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: flex-end;
+        }
+        .table-cell-input {
+          min-width: 150px;
+        }
+        .table-row-actions {
+          display: flex;
+          align-items: flex-end;
+          height: 38px;
+        }
+        .sections-add-more {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding-top: 16px;
+          border-top: 1px dashed var(--border-light);
+          flex-wrap: wrap;
+        }
+        .sections-add-more span {
+          font-size: 0.85rem;
+          color: #64748b;
+          font-weight: 500;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function AdminProducts() {
-  const { products, saveProduct, deleteProduct, showToast } = useData();
+  const { products, saveProduct, deleteProduct, replaceAllProducts, showToast } = useData();
   const [editingProduct, setEditingProduct] = useState(null);
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [uploading, setUploading] = useState(false);
   const [brokenImages, setBrokenImages] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sectionsStr, setSectionsStr] = useState('');
   const [appsStr, setAppsStr] = useState('');
 
   const initialForm = {
@@ -30,7 +584,8 @@ export default function AdminProducts() {
     images: [],
     badge: '',
     featured: false,
-    applications: ['Pallet wrapping', 'Logistics transit']
+    applications: ['Pallet wrapping', 'Logistics transit'],
+    sections: []
   };
 
   const [formData, setFormData] = useState(initialForm);
@@ -38,7 +593,6 @@ export default function AdminProducts() {
   const handleOpenAdd = () => {
     setEditingProduct(null);
     setFormData(initialForm);
-    setSectionsStr(JSON.stringify([], null, 2));
     setAppsStr(initialForm.applications.join(', '));
     setIsModalOpen(true);
   };
@@ -48,6 +602,12 @@ export default function AdminProducts() {
     showToast(`Product ${prod.archived ? 'unarchived' : 'archived'} successfully!`, 'success');
   };
 
+  const resetToDefaults = () => {
+    if (window.confirm('This will replace ALL products with the default catalog (21 products with full tables). This cannot be undone. Continue?')) {
+      replaceAllProducts(DEFAULT_PRODUCTS);
+    }
+  };
+
   const handleOpenEdit = (prod) => {
     setEditingProduct(prod);
     setFormData({
@@ -55,7 +615,6 @@ export default function AdminProducts() {
       applications: prod.applications || ['Pallet wrapping'],
       sections: prod.sections || []
     });
-    setSectionsStr(JSON.stringify(prod.sections || [], null, 2));
     setAppsStr((prod.applications || []).join(', '));
     setIsModalOpen(true);
   };
@@ -143,18 +702,10 @@ export default function AdminProducts() {
       return;
     }
 
-    let parsedSections = [];
-    try {
-      parsedSections = JSON.parse(sectionsStr);
-    } catch (err) {
-      showToast('Invalid JSON format in Sections field.', 'error');
-      return;
-    }
-
     const finalData = {
       ...formData,
       applications: appsStr.split(',').map(s => s.trim()).filter(Boolean),
-      sections: parsedSections
+      sections: formData.sections || []
     };
 
     if (editingProduct) {
@@ -165,10 +716,17 @@ export default function AdminProducts() {
     setIsModalOpen(false);
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (p.subtitle && p.subtitle.toLowerCase().includes(searchQuery.toLowerCase()))
+    (p.subtitle && p.subtitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.thickness && p.thickness.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.width && p.width.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.coreSize && p.coreSize.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.elongation && p.elongation.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.badge && p.badge.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.applications && p.applications.some(app => app.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   return (
@@ -181,14 +739,17 @@ export default function AdminProducts() {
 
         <div className="toolbar-actions">
           <div className="search-box">
-            <input 
-              type="text" 
-              placeholder="Search products..." 
+            <input
+              type="text"
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="form-input search-input"
             />
           </div>
+          <button className="btn btn-secondary" onClick={resetToDefaults} title="Reset to default catalog with all tables">
+            <RefreshCw size={16} /> Reset to Defaults
+          </button>
           <button className="btn btn-primary" onClick={handleOpenAdd}>
             <Plus size={16} /> Add New Product
           </button>
@@ -203,9 +764,12 @@ export default function AdminProducts() {
                 <th>Product</th>
                 <th>Category</th>
                 <th>Thickness</th>
+                <th>Width</th>
+                <th>Core Size</th>
                 <th>Elongation</th>
                 <th>Badge</th>
                 <th>Featured</th>
+                <th>Applications</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -225,6 +789,8 @@ export default function AdminProducts() {
                     <span className="badge badge-navy">{p.category}</span>
                   </td>
                   <td>{p.thickness}</td>
+                  <td>{p.width}</td>
+                  <td>{p.coreSize}</td>
                   <td>{p.elongation}</td>
                   <td>
                     {p.badge && <span className="badge badge-green">{p.badge}</span>}
@@ -237,6 +803,12 @@ export default function AdminProducts() {
                     ) : (
                       <span className="text-muted">Standard</span>
                     )}
+                  </td>
+                  <td>
+                    <span className="prod-cell-sub" style={{maxWidth: '200px'}}>
+                      {p.applications?.slice(0, 3).join(', ')}
+                      {p.applications && p.applications.length > 3 && '...'}
+                    </span>
                   </td>
                   <td>
                     <div className="table-actions">
@@ -378,14 +950,11 @@ export default function AdminProducts() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Sections / Product Page Content (Advanced JSON)</label>
-                <p className="img-help">Define the rich content of the product page (title, text, list, table). Must be valid JSON.</p>
-                <textarea 
-                  rows="10" 
-                  value={sectionsStr} 
-                  onChange={(e) => setSectionsStr(e.target.value)} 
-                  className="form-textarea" 
-                  style={{fontFamily: 'monospace', fontSize: '0.85rem'}}
+                <label className="form-label">Sections / Product Page Content</label>
+                <p className="img-help">Add rich content sections (text, lists, tables) that appear on the product detail page. Drag to reorder.</p>
+                <SectionsEditor
+                  sections={formData.sections || []}
+                  onChange={(sections) => setFormData(prev => ({ ...prev, sections }))}
                 />
               </div>
 
